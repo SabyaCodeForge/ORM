@@ -1,0 +1,2262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>NovaCRM — by Sabyx Labs</title>
+
+<!-- PWA: manifest + icons + theme color -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#5B8CFF" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="NovaCRM" />
+<meta name="mobile-web-app-capable" content="yes" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
+<style>
+:root{
+  --primary:#5B8CFF; --secondary:#7C6CFF;
+  --bg:#EEF1F7; --surface:#F4F6FB; --text:#2A3040; --text-dim:#8A93A6;
+  --shadow-a:rgba(163,177,198,0.55); --shadow-b:rgba(255,255,255,0.9);
+  --border:rgba(200,206,220,0.5);
+}
+html.dark{
+  --bg:#171A26; --surface:#1E2233; --text:#E7EAF2; --text-dim:#8993AC;
+  --shadow-a:rgba(0,0,0,0.55); --shadow-b:rgba(50,56,78,0.35);
+  --border:rgba(70,78,100,0.4);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+html,body{height:100%;margin:0;overflow-x:hidden;width:100%;max-width:100vw;}
+body{
+  font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+  background:var(--bg); color:var(--text);
+  -webkit-tap-highlight-color:transparent;
+  transition: background .25s ease, color .25s ease;
+}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:rgba(120,130,160,.35);border-radius:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit;}
+input,select,textarea{font-family:inherit;color:var(--text);}
+
+.neu-card{background:var(--surface);border-radius:1.5rem;box-shadow:8px 8px 18px var(--shadow-a), -8px -8px 18px var(--shadow-b);transition:box-shadow .25s ease, transform .25s ease;}
+.neu-inset{background:var(--bg);border-radius:1rem;box-shadow:inset 5px 5px 10px var(--shadow-a), inset -5px -5px 10px var(--shadow-b);}
+.neu-btn{background:var(--surface);border-radius:1rem;box-shadow:5px 5px 12px var(--shadow-a), -5px -5px 12px var(--shadow-b);transition:all .25s ease;}
+.neu-btn:active{box-shadow:inset 4px 4px 8px var(--shadow-a), inset -4px -4px 8px var(--shadow-b); transform:scale(.97);}
+.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:1rem;padding:12px 20px;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));box-shadow:0 16px 30px -10px rgba(91,140,255,.4);transition:all .25s ease;}
+.btn-primary:hover{filter:brightness(1.07);}
+.btn-primary:active{transform:scale(.97);}
+.btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:1rem;padding:10px 16px;font-size:14px;font-weight:500;color:var(--text-dim);transition:background .2s ease, color .2s ease, transform .15s ease;}
+.btn-ghost:hover{color:var(--text);background:color-mix(in srgb, var(--text-dim) 10%, transparent);}
+.btn-ghost:active{transform:scale(.97);}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;}
+.b-slate{background:rgba(148,163,184,.2);color:#64748b;}
+.b-blue{background:rgba(91,140,255,.15);color:#5B8CFF;}
+.b-green{background:rgba(34,197,94,.15);color:#16a34a;}
+.b-amber{background:rgba(245,158,11,.15);color:#d97706;}
+.b-red{background:rgba(239,68,68,.15);color:#dc2626;}
+.b-purple{background:rgba(124,108,255,.15);color:#7C6CFF;}
+html.dark .b-green{color:#4ade80;} html.dark .b-amber{color:#fbbf24;} html.dark .b-red{color:#f87171;} html.dark .b-blue{color:#8fb2ff;} html.dark .b-purple{color:#a599ff;}
+
+.input{width:100%;padding:12px 16px;border:none;outline:none;font-size:14px;background:var(--bg);border-radius:1rem;box-shadow:inset 5px 5px 10px var(--shadow-a), inset -5px -5px 10px var(--shadow-b);}
+.input::placeholder{color:var(--text-dim);}
+.label{font-size:12px;font-weight:500;color:var(--text-dim);margin-bottom:6px;display:block;}
+.field{display:flex;flex-direction:column;gap:0;margin-bottom:14px;}
+
+/* Custom file upload control — replaces the native OS "Choose File" button */
+.file-upload{position:relative;}
+.file-upload-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;padding:22px 16px;border-radius:1rem;background:var(--bg);border:1.5px dashed color-mix(in srgb, var(--text-dim) 40%, transparent);box-shadow:inset 3px 3px 8px var(--shadow-a), inset -3px -3px 8px var(--shadow-b);transition:border-color .2s ease, background .2s ease;}
+.file-upload-zone.drag{border-color:var(--primary);background:color-mix(in srgb, var(--primary) 10%, var(--bg));}
+.file-upload-zone input[type="file"]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+.file-upload-icon{width:36px;height:36px;border-radius:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));box-shadow:4px 4px 10px var(--shadow-a), -4px -4px 10px var(--shadow-b);}
+.file-upload-title{font-size:13px;font-weight:600;margin:0;}
+.file-upload-sub{font-size:11.5px;color:var(--text-dim);margin:2px 0 0;}
+.file-upload-chip{display:none;align-items:center;gap:10px;padding:10px 14px;border-radius:1rem;background:var(--bg);box-shadow:inset 3px 3px 8px var(--shadow-a), inset -3px -3px 8px var(--shadow-b);}
+.file-upload-chip.show{display:flex;}
+.file-upload-chip .chip-icon{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+.file-upload-chip .chip-info{flex:1;min-width:0;}
+.file-upload-chip .chip-name{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.file-upload-chip .chip-size{font-size:10.5px;color:var(--text-dim);}
+.file-upload-chip .chip-remove{color:var(--text-dim);flex-shrink:0;padding:4px;border-radius:8px;transition:background .2s ease, color .2s ease;}
+.file-upload-chip .chip-remove:hover{color:#EF4444;background:rgba(239,68,68,.12);}
+
+.icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+#app-shell{display:flex;min-height:100vh;min-height:100dvh;max-width:100vw;}
+#sidebar{width:260px;flex-shrink:0;padding:20px;padding-top:calc(20px + env(safe-area-inset-top));padding-bottom:calc(20px + env(safe-area-inset-bottom));padding-left:calc(20px + env(safe-area-inset-left));display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;height:100dvh;}
+#sidebar .brand{display:flex;align-items:center;gap:12px;padding:0 4px;}
+.brand-mark{width:40px;height:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--bg);box-shadow:5px 5px 12px var(--shadow-a), -5px -5px 12px var(--shadow-b);padding:5px;}
+.brand-mark img{width:100%;height:100%;object-fit:contain;}
+#nav{display:flex;flex-direction:column;gap:6px;flex:1;}
+.nav-link{display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:1rem;font-size:14px;font-weight:500;color:var(--text-dim);transition:all .25s ease;}
+.nav-link.active{background:var(--bg);box-shadow:inset 5px 5px 10px var(--shadow-a), inset -5px -5px 10px var(--shadow-b);color:var(--primary);}
+.nav-link:hover:not(.active){color:var(--text);}
+
+#topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;padding-top:calc(16px + env(safe-area-inset-top));padding-right:calc(28px + env(safe-area-inset-right));backdrop-filter:blur(8px);background:color-mix(in srgb, var(--bg) 82%, transparent);gap:12px;flex-wrap:wrap;}
+#mobile-menu-btn{display:none;}
+
+/* Notifications: bell + unread badge + dropdown panel of local due/overdue items
+   (tasks, invoices, project deadlines) — fully offline, no server or messages involved */
+#notif-wrap{position:relative;}
+#notif-bell{padding:10px;position:relative;}
+#notif-badge{position:absolute;top:4px;right:4px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#EF4444;color:#fff;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;line-height:1;}
+#notif-badge.show{display:flex;}
+#notif-panel{display:none;position:fixed;z-index:40;width:340px;max-width:calc(100vw - 16px);max-height:70vh;overflow-y:auto;padding:8px;}
+#notif-panel.open{display:block;}
+.notif-item{padding:12px;border-radius:1rem;margin-bottom:6px;cursor:default;}
+.notif-item.unread{background:var(--bg);box-shadow:inset 3px 3px 8px var(--shadow-a), inset -3px -3px 8px var(--shadow-b);}
+.notif-item .notif-name{font-size:13px;font-weight:700;margin:0;}
+.notif-item .notif-meta{font-size:11px;color:var(--text-dim);margin:2px 0 6px;}
+.notif-item .notif-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.notif-item .notif-actions button{font-size:11px;padding:6px 10px;}
+#main{flex:1;min-width:0;max-width:100%;display:flex;flex-direction:column;}
+#page{flex:1;padding:0 28px 120px;padding-right:calc(28px + env(safe-area-inset-right));max-width:1600px;width:100%;margin:0 auto;animation:fadeUp .25s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+.page-title{font-size:clamp(20px, 5vw, 26px);font-weight:800;letter-spacing:-.02em;margin:0;}
+.page-sub{font-size:14px;color:var(--text-dim);margin:6px 0 0;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:8px 0 24px;}
+
+.grid{display:grid;gap:16px;}
+.grid-stats{grid-template-columns:repeat(2,1fr);}
+@media(min-width:700px){.grid-stats{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:1200px){.grid-stats{grid-template-columns:repeat(6,1fr);}}
+.grid-cards{grid-template-columns:1fr;}
+@media(min-width:640px){.grid-cards{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:1100px){.grid-cards{grid-template-columns:repeat(3,1fr);}}
+.grid-2{display:grid;gap:18px;grid-template-columns:1fr;}
+@media(min-width:1000px){.grid-2{grid-template-columns:2fr 1fr;}}
+.grid-half{display:grid;gap:18px;grid-template-columns:1fr;}
+@media(min-width:900px){.grid-half{grid-template-columns:1fr 1fr;}}
+
+.stat-card{padding:20px;display:flex;align-items:center;gap:14px;}
+.stat-icon{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--secondary));}
+.stat-icon.secondary{background:linear-gradient(135deg,var(--secondary),var(--primary));}
+.stat-label{font-size:11px;color:var(--text-dim);overflow-wrap:break-word;}
+.stat-value{font-size:19px;font-weight:800;overflow-wrap:break-word;}
+
+.empty{padding:60px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.empty p.title{font-weight:600;margin:0;}
+.empty p.sub{font-size:13px;color:var(--text-dim);max-width:360px;margin:0;}
+
+#fab-wrap{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));right:calc(24px + env(safe-area-inset-right));z-index:40;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+#fab-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-bottom:2px;}
+.fab-action{padding:10px 16px;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;transform:translateY(8px) scale(.9);animation:fabIn .2s ease forwards;}
+@keyframes fabIn{to{opacity:1;transform:translateY(0) scale(1);}}
+#fab-main{width:58px;height:58px;border-radius:50%;font-size:26px;transition:transform .25s ease;}
+#fab-main.open{transform:rotate(45deg);}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(10,12,20,.4);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;animation:fade .2s ease;}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal-box{border-radius:1.5rem;background:var(--surface);box-shadow:8px 8px 18px var(--shadow-a), -8px -8px 18px var(--shadow-b);padding:26px;width:100%;max-width:560px;margin:32px 0;animation:modalIn .25s ease;}
+.modal-box.wide{max-width:820px;}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.modal-head h2{font-size:18px;font-weight:700;margin:0;}
+.modal-body{max-height:65vh;overflow-y:auto;padding-right:4px;}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:60;padding:12px 22px;border-radius:1rem;font-size:13px;font-weight:600;animation:toastIn .25s ease;}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px);}to{opacity:1;transform:translate(-50%,0);}}
+
+.hosting-banner{display:flex;align-items:flex-start;gap:12px;padding:14px 20px;margin:16px 28px 0;border-radius:1rem;background:rgba(245,158,11,.12);color:#b45309;font-size:12.5px;line-height:1.6;}
+html.dark .hosting-banner{color:#fbbf24;}
+.hosting-banner .hb-close{flex-shrink:0;margin-left:auto;color:inherit;opacity:.7;padding:2px;}
+.hosting-banner .hb-close:hover{opacity:1;}
+@media(max-width:1023px){.hosting-banner{margin:14px 16px 0;}}
+
+table.data-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+table.data-table th{text-align:left;font-size:11px;color:var(--text-dim);font-weight:600;padding:12px 18px;border-bottom:1px solid var(--border);}
+table.data-table td{padding:13px 18px;border-bottom:1px solid var(--border);}
+table.data-table tr:last-child td{border-bottom:none;}
+table.data-table tr.row-click{cursor:pointer;}
+table.data-table tr.row-click:hover{background:color-mix(in srgb, var(--bg) 60%, transparent);}
+
+.progress-bar{width:100%;height:8px;border-radius:99px;background:color-mix(in srgb, var(--text-dim) 25%, transparent);overflow:hidden;}
+.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--secondary));}
+
+.chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px;}
+.chip{padding:9px 16px;border-radius:1rem;font-size:12.5px;font-weight:600;white-space:nowrap;color:var(--text-dim);}
+.chip.active{color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));}
+
+.cal-cell{min-height:84px;border-radius:1rem;padding:8px;cursor:pointer;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.cal-evt{font-size:10px;padding:2px 6px;border-radius:6px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* Invoice item row — responsive so fields stay a usable width on phones
+   instead of being crushed into 6 equal columns on a narrow screen. */
+.item-row{padding:16px;margin-bottom:12px;}
+.item-fields{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:end;}
+.if-cell{min-width:0;}
+.if-service{grid-column:span 2;}
+.if-label{font-size:11px;color:var(--text-dim);display:block;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.input-compact{padding:10px;font-size:13px;min-width:0;}
+.item-remove-btn{color:var(--text-dim);padding:9px;border-radius:10px;flex-shrink:0;transition:background .2s ease,color .2s ease;}
+.item-remove-btn:hover{color:#EF4444;background:rgba(239,68,68,.12);}
+@media(max-width:900px){
+  .item-fields{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .if-service{grid-column:1/-1;}
+}
+@media(max-width:480px){
+  .item-fields{gap:8px;}
+  .input-compact{font-size:13px;padding:9px 8px;}
+}
+
+@media(max-width:1023px){
+  #sidebar{position:fixed;left:0;top:0;bottom:0;z-index:45;transform:translateX(-100%);transition:transform .25s ease;box-shadow:20px 0 40px rgba(0,0,0,.2);background:var(--bg);}
+  #sidebar.open{transform:translateX(0);}
+  #sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:44;}
+  #sidebar-overlay.show{display:block;}
+  #mobile-menu-btn{display:inline-flex;}
+  #page{padding:0 16px 120px;padding-right:calc(16px + env(safe-area-inset-right));}
+  #topbar{padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top));padding-right:calc(16px + env(safe-area-inset-right));}
+}
+@media(max-width:479px){
+  .grid-stats{grid-template-columns:1fr 1fr;gap:10px;}
+  .stat-card{padding:14px;gap:10px;}
+  .stat-icon{width:38px;height:38px;border-radius:12px;}
+  .neu-card{border-radius:1.1rem;}
+  #page{padding:0 12px 120px;padding-right:calc(12px + env(safe-area-inset-right));}
+  #topbar{padding:12px;padding-top:calc(12px + env(safe-area-inset-top));padding-right:calc(12px + env(safe-area-inset-right));}
+  .modal-box{padding:18px;margin:16px 0;}
+  #fab-main{width:52px;height:52px;}
+}
+@media print{
+  body *{visibility:hidden;}
+  #print-area,#print-area *{visibility:visible;}
+  #print-area{position:absolute;left:0;top:0;width:100%;}
+}
+</style>
+</head>
+<body>
+<div id="boot-splash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(120% 120% at 50% 20%,#232848 0%,#12131f 70%);color:#fff;font-family:Inter,sans-serif;transition:opacity .5s ease;">
+  <div style="width:84px;height:84px;border-radius:22px;background:linear-gradient(145deg,#5B8CFF,#7C6CFF);display:flex;align-items:center;justify-content:center;box-shadow:0 20px 40px -10px rgba(91,140,255,.55);font-weight:800;font-size:40px;margin-bottom:20px;">S</div>
+  <h1 style="font-size:22px;font-weight:700;margin:0;">NovaCRM</h1>
+  <p style="margin:6px 0 0;font-size:12px;opacity:.6;letter-spacing:1px;text-transform:uppercase;">Powered by Sabyx Labs</p>
+</div>
+
+<div id="app-shell">
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><img src="mark.png" alt="Sabyx Labs" /></div>
+      <div>
+        <div style="font-weight:700;line-height:1.1;">NovaCRM</div>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.1;">Sabyx Labs</div>
+      </div>
+    </div>
+    <nav id="nav"></nav>
+    <button class="neu-btn" id="theme-toggle-btn" style="padding:12px 16px;font-size:12px;font-weight:600;color:var(--text-dim);display:flex;align-items:center;gap:8px;justify-content:center;" onclick="cycleTheme()"></button>
+    <p style="text-align:center;font-size:10.5px;color:var(--text-dim);opacity:.75;margin:0;letter-spacing:.2px;">&copy; <span id="copyright-year"></span> Sabyasachi Mondal</p>
+  </aside>
+
+  <div id="main">
+    <div id="hosting-banner-wrap"></div>
+    <header id="topbar">
+      <button id="mobile-menu-btn" class="neu-btn" style="padding:10px;" onclick="openSidebar()">
+        <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div></div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="notif-wrap">
+          <button id="notif-bell" class="neu-btn" onclick="toggleNotifPanel()" title="Due &amp; overdue items">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span id="notif-badge"></span>
+          </button>
+          <div id="notif-panel" class="neu-card"></div>
+        </div>
+        <button id="pwa-install-btn" class="btn-ghost" style="display:none;" onclick="installNovaCRM()">
+          <svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Install App
+        </button>
+        <span style="font-size:11px;color:var(--text-dim);">Offline &middot; Local data only</span>
+      </div>
+    </header>
+    <main id="page"></main>
+  </div>
+</div>
+
+<div id="fab-wrap">
+  <div id="fab-actions"></div>
+  <button id="fab-main" class="btn-primary" onclick="toggleFab()">
+    <svg class="icon" viewBox="0 0 24 24" style="width:26px;height:26px;stroke:#fff;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+<!-- Preloaded, hidden — used as image sources for the invoice PDF (header logo + watermark) -->
+<img id="pdf-logo-mark" src="mark.png" alt="" style="display:none;" />
+<img id="pdf-logo-lockup" src="lockup.png" alt="" style="display:none;" />
+<img id="pdf-logo-custom" alt="" style="display:none;" />
+
+<script>
+// ===================== Utilities =====================
+const uid = () => 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+const nowISO = () => new Date().toISOString();
+const todayStr = () => new Date().toISOString().slice(0,10);
+
+function escapeHtml(str){
+  if(str===undefined||str===null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// A plain "YYYY-MM-DD" string (no time/zone) is parsed by `new Date()` as UTC
+// midnight. Reading it back out with local getters (getDate/getMonth/etc — used
+// everywhere below for display and day-matching) then silently shifts it a day
+// in either direction depending on the viewer's UTC offset. Task due dates,
+// invoice dates, and project deadlines are all stored this way, so every place
+// that parses one of those fields should go through this helper instead of a
+// bare `new Date(str)` — it parses date-only strings as a *local* calendar date
+// so the day never moves. Full timestamps (with a "T"/time component, e.g.
+// activity log entries or user-added calendar events) are left untouched since
+// those are already correct instants.
+function parseDateOnly(str){
+  if(!str) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(str).trim());
+  if(m) return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtDate(iso, opts){
+  if(!iso) return '';
+  const d = parseDateOnly(iso);
+  if(!d || isNaN(d.getTime())) return '';
+  opts = opts || {};
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if(opts.short) return d.getDate()+' '+months[d.getMonth()];
+  if(opts.time) return months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()+' '+formatTime(d);
+  return months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+}
+function formatTime(d){
+  let h = d.getHours(); const m = d.getMinutes();
+  const ampm = h>=12?'PM':'AM'; h = h%12; if(h===0) h=12;
+  return h+':'+String(m).padStart(2,'0')+' '+ampm;
+}
+function monthShort(d){ return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; }
+function addMonths(date, n){ const d = new Date(date); d.setMonth(d.getMonth()+n); return d; }
+function ymKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function isSameDay(a,b){ return !!a && !!b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function isSameMonth(a,b){ return !!a && !!b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth(); }
+function isPastDate(iso){ const d = daysUntil(iso); return d!==null && d<0; }
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+
+const CURRENCY_SYMBOLS = { INR:'Rs.', USD:'$', EUR:'\u20ac', GBP:'\u00a3' };
+function fmtMoney(n, currency){
+  currency = currency || 'INR';
+  const symbol = CURRENCY_SYMBOLS[currency] || (currency+' ');
+  n = Number(n)||0;
+  return symbol + ' ' + n.toLocaleString('en-IN', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function calcItem(item){
+  const base = item.quantity * item.price;
+  const discount = base * (item.discountPercent/100);
+  const afterDiscount = base - discount;
+  const tax = afterDiscount * (item.taxPercent/100);
+  return { base, discount, tax, total: afterDiscount+tax };
+}
+function calcInvoiceTotals(invoice){
+  let subtotal=0, totalTax=0, totalDiscount=0;
+  (invoice.items||[]).forEach(item=>{
+    const c = calcItem(item);
+    subtotal += c.base; totalDiscount += c.discount; totalTax += c.tax;
+  });
+  const grandTotal = subtotal - totalDiscount + totalTax;
+  const paid = invoice.amountPaid||0;
+  const remaining = Math.max(grandTotal - paid, 0);
+  const credit = Math.max(paid - grandTotal, 0); // overpayment — previously just vanished
+  return { subtotal, totalTax, totalDiscount, grandTotal, remaining, credit };
+}
+
+function debounce(fn, ms){
+  let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); };
+}
+
+// Re-rendering a whole page section (as the search boxes below do) replaces the
+// <input> DOM node, which silently drops focus/cursor position even though the
+// element keeps the same id. This restores both so typing doesn't get
+// interrupted every time the debounced re-render fires.
+function refocusInput(id, cursorPos){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.focus();
+  if(typeof cursorPos==='number' && el.setSelectionRange){
+    try{ el.setSelectionRange(cursorPos, cursorPos); }catch(e){}
+  }
+}
+
+// ===================== Field validation =====================
+function isValidEmail(str){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(str||'').trim()); }
+function isValidPhone(str){
+  const digits = String(str||'').replace(/[\s()-]/g,'');
+  return /^\+?[0-9]{7,15}$/.test(digits);
+}
+function markFieldInvalid(el){
+  if(!el) return;
+  el.style.boxShadow = 'inset 5px 5px 10px var(--shadow-a), inset -5px -5px 10px var(--shadow-b), 0 0 0 1.5px #EF4444';
+  el.focus();
+  const clear = () => { el.style.boxShadow=''; el.removeEventListener('input', clear); };
+  el.addEventListener('input', clear);
+}
+
+// ===================== Icons (minimal inline SVG, Feather-style) =====================
+const ICONS = {
+  dashboard: '<rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/>',
+  clients: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  projects: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+  tasks: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  billing: '<path d="M4 2h16v20l-3-2-3 2-3-2-3 2-3-2-1 2z" fill="none"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  analytics: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  documents: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  about: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  edit: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/>',
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  back: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  print: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+  sun: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
+  moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  circle: '<circle cx="12" cy="12" r="10"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  chevronL: '<polyline points="15 18 9 12 15 6"/>',
+  chevronR: '<polyline points="9 18 15 12 9 6"/>',
+  paperclip: '<path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
+  building: '<rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="6" x2="9.01" y2="6"/><line x1="15" y1="6" x2="15.01" y2="6"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/><line x1="9" y1="14" x2="9.01" y2="14"/><line x1="15" y1="14" x2="15.01" y2="14"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  mail: '<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22 6 12 13 2 6"/>',
+  pin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+  repeat: '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+  heart: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  fileText: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+  note: '<path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9"/><path d="M16 22l6-6"/><path d="M18 14v4h4"/>',
+  file: '<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>'
+};
+function icon(name, extra){ return '<svg class="icon" style="'+(extra||'')+'" viewBox="0 0 24 24">'+ (ICONS[name]||'') +'</svg>'; }
+
+// ===================== IndexedDB layer =====================
+const DB_NAME = 'novacrm-db';
+const DB_VERSION = 1;
+const STORES = ['clients','projects','tasks','invoices','documents','calendarEvents','activity','settings'];
+let _dbInstance = null;
+
+function openDatabase(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      STORES.forEach(name=>{
+        if(!db.objectStoreNames.contains(name)){
+          db.createObjectStore(name, { keyPath: 'id' });
+        }
+      });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function getDB(){ if(!_dbInstance) _dbInstance = await openDatabase(); return _dbInstance; }
+
+function txDone(tx){ return new Promise((res,rej)=>{ tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error); }); }
+
+async function idbGetAll(store){
+  const db = await getDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(store,'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbGet(store, id){
+  const db = await getDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(store,'readonly');
+    const req = tx.objectStore(store).get(id);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbPut(store, value){
+  const db = await getDB();
+  const tx = db.transaction(store,'readwrite');
+  tx.objectStore(store).put(value);
+  await txDone(tx);
+  return value;
+}
+async function idbDelete(store, id){
+  const db = await getDB();
+  const tx = db.transaction(store,'readwrite');
+  tx.objectStore(store).delete(id);
+  await txDone(tx);
+}
+async function idbClear(store){
+  const db = await getDB();
+  const tx = db.transaction(store,'readwrite');
+  tx.objectStore(store).clear();
+  await txDone(tx);
+}
+
+async function logActivity(message, type){
+  const entry = { id: uid(), message, type, createdAt: nowISO() };
+  await idbPut('activity', entry);
+  return entry;
+}
+
+// ===================== App State =====================
+const DEFAULT_SETTINGS = {
+  id:'settings', businessName:'Sabyx Labs', businessLogoDataUrl:null,
+  currency:'INR', taxPercent:18, invoicePrefix:'INV', theme:'system', ownerName:''
+};
+
+const STATE = {
+  clients:[], projects:[], tasks:[], invoices:[], documents:[], calendarEvents:[], activity:[],
+  settings: Object.assign({}, DEFAULT_SETTINGS)
+};
+
+async function loadAll(){
+  const [clients, projects, tasks, invoices, documents, calendarEvents, activity, settings] = await Promise.all([
+    idbGetAll('clients'), idbGetAll('projects'), idbGetAll('tasks'), idbGetAll('invoices'),
+    idbGetAll('documents'), idbGetAll('calendarEvents'), idbGetAll('activity'), idbGet('settings','settings')
+  ]);
+  STATE.clients = clients.sort((a,b)=>a.name.localeCompare(b.name));
+  STATE.projects = projects;
+  STATE.tasks = tasks;
+  STATE.invoices = invoices.sort((a,b)=> (b.invoiceDate||'').localeCompare(a.invoiceDate||''));
+  STATE.documents = documents;
+  STATE.calendarEvents = calendarEvents;
+  STATE.activity = activity.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,60);
+  STATE.settings = settings || Object.assign({}, DEFAULT_SETTINGS);
+  syncCustomLogoPreload();
+  if(typeof refreshNotifications === 'function') refreshNotifications();
+}
+function syncCustomLogoPreload(){
+  const el = document.getElementById('pdf-logo-custom');
+  if(!el) return;
+  const url = STATE.settings.businessLogoDataUrl;
+  if(url && el.getAttribute('src') !== url) el.setAttribute('src', url);
+  else if(!url) el.removeAttribute('src');
+}
+
+async function saveClient(c){ c.updatedAt = nowISO(); if(!c.createdAt) c.createdAt = nowISO(); await idbPut('clients', c); await logActivity('Client "'+c.name+'" saved','client'); await loadAll(); }
+async function deleteClientRec(id){ await idbDelete('clients', id); await logActivity('Client removed','client'); await loadAll(); }
+async function saveProjectRec(p){ p.updatedAt = nowISO(); if(!p.createdAt) p.createdAt = nowISO(); await idbPut('projects', p); await logActivity('Project "'+p.name+'" saved','project'); await loadAll(); }
+async function deleteProjectRec(id){ await idbDelete('projects', id); await logActivity('Project removed','project'); await loadAll(); }
+async function saveTaskRec(t){ t.updatedAt = nowISO(); if(!t.createdAt) t.createdAt = nowISO(); await idbPut('tasks', t); await logActivity('Task "'+t.title+'" saved','task'); await loadAll(); }
+async function deleteTaskRec(id){ await idbDelete('tasks', id); await logActivity('Task removed','task'); await loadAll(); }
+async function saveInvoiceRec(i){ i.updatedAt = nowISO(); if(!i.createdAt) i.createdAt = nowISO(); await idbPut('invoices', i); await logActivity('Invoice '+i.invoiceNumber+' saved','invoice'); await loadAll(); }
+async function deleteInvoiceRec(id){ await idbDelete('invoices', id); await logActivity('Invoice removed','invoice'); await loadAll(); }
+async function saveDocumentRec(d){ await idbPut('documents', d); await logActivity('Document "'+d.name+'" added','document'); await loadAll(); }
+async function deleteDocumentRec(id){ await idbDelete('documents', id); await logActivity('Document removed','document'); await loadAll(); }
+async function saveCalendarEventRec(e){ await idbPut('calendarEvents', e); await loadAll(); }
+async function saveSettingsRec(s){ await idbPut('settings', s); await loadAll(); }
+
+async function exportAllData(){
+  const data = {};
+  for(const s of STORES) data[s] = await idbGetAll(s);
+  return { version: DB_VERSION, exportedAt: nowISO(), data };
+}
+async function importAllData(payload){
+  for(const s of Object.keys(payload.data||{})){
+    for(const item of payload.data[s]) await idbPut(s, item);
+  }
+}
+async function clearAllData(){
+  for(const s of STORES){ if(s!=='settings') await idbClear(s); }
+}
+
+// ===================== Theme =====================
+function applyTheme(){
+  const mode = localStorage.getItem('novacrm-theme') || 'system';
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  const isDark = mode==='dark' || (mode==='system' && mq.matches);
+  document.documentElement.classList.toggle('dark', isDark);
+  const btn = document.getElementById('theme-toggle-btn');
+  if(btn) btn.innerHTML = icon(mode==='light'?'sun':mode==='dark'?'moon':'globe') + ' <span style="text-transform:capitalize;">'+mode+' theme</span>';
+}
+function cycleTheme(){
+  const cur = localStorage.getItem('novacrm-theme') || 'system';
+  const next = cur==='light' ? 'dark' : cur==='dark' ? 'system' : 'light';
+  localStorage.setItem('novacrm-theme', next);
+  applyTheme();
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+// ===================== Navigation / Router =====================
+const NAV_ITEMS = [
+  { hash:'#/', label:'Dashboard', iconName:'dashboard' },
+  { hash:'#/clients', label:'Clients', iconName:'clients' },
+  { hash:'#/projects', label:'Projects', iconName:'projects' },
+  { hash:'#/tasks', label:'Tasks', iconName:'tasks' },
+  { hash:'#/billing', label:'Billing', iconName:'billing' },
+  { hash:'#/calendar', label:'Calendar', iconName:'calendar' },
+  { hash:'#/analytics', label:'Analytics', iconName:'analytics' },
+  { hash:'#/documents', label:'Documents', iconName:'documents' },
+  { hash:'#/settings', label:'Settings', iconName:'settings' },
+  { hash:'#/about', label:'About', iconName:'about' }
+];
+
+function renderNav(){
+  const current = location.hash || '#/';
+  const nav = document.getElementById('nav');
+  nav.innerHTML = NAV_ITEMS.map(item=>{
+    const active = (item.hash==='#/' ? (current==='#/'||current==='') : current.indexOf(item.hash)===0);
+    return '<a class="nav-link'+(active?' active':'')+'" href="'+item.hash+'" onclick="return navigateTo(event,\''+item.hash+'\')">'+icon(item.iconName)+'<span>'+item.label+'</span></a>';
+  }).join('');
+}
+
+// Drive navigation explicitly instead of relying only on the browser's
+// native hashchange event, which can be unreliable inside sandboxed
+// preview iframes (e.g. when the hash is set programmatically or the
+// destination hash equals the current one).
+function navigateTo(evt, hash){
+  if(evt){ evt.preventDefault(); }
+  if(location.hash === hash){
+    route();
+  } else {
+    location.hash = hash;
+  }
+  return false;
+}
+
+function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('show'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('show'); }
+
+// FAB
+let fabOpen = false;
+const FAB_ACTIONS = [
+  { label:'New Client', hash:'#/clients/new' },
+  { label:'New Project', hash:'#/projects/new' },
+  { label:'New Task', hash:'#/tasks/new' },
+  { label:'New Invoice', hash:'#/billing/new' }
+];
+function toggleFab(){
+  fabOpen = !fabOpen;
+  const wrap = document.getElementById('fab-actions');
+  const main = document.getElementById('fab-main');
+  main.classList.toggle('open', fabOpen);
+  if(fabOpen){
+    wrap.innerHTML = FAB_ACTIONS.map((a,i)=>'<button class="neu-card fab-action" style="animation-delay:'+(i*40)+'ms" onclick="location.hash=\''+a.hash+'\'; toggleFab();">'+a.label+'</button>').join('');
+  } else {
+    wrap.innerHTML = '';
+  }
+}
+
+// Modal helpers
+function openModal(title, bodyHtml, footHtml, opts){
+  opts = opts || {};
+  const root = document.getElementById('modal-root');
+  root.innerHTML =
+    '<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this) closeModal();">'+
+      '<div class="modal-box'+(opts.wide?' wide':'')+'">'+
+        '<div class="modal-head"><h2>'+escapeHtml(title)+'</h2><button class="neu-btn" style="padding:8px;" onclick="closeModal()">'+icon('x')+'</button></div>'+
+        '<div class="modal-body">'+bodyHtml+'</div>'+
+        (footHtml ? '<div class="modal-foot">'+footHtml+'</div>' : '') +
+      '</div>'+
+    '</div>';
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML = ''; }
+
+function confirmDialog(title, message, onConfirm){
+  openModal(title,
+    '<p style="font-size:14px;color:var(--text-dim);margin:0 0 6px;">'+escapeHtml(message)+'</p>',
+    '<button class="btn-ghost" onclick="closeModal()">Cancel</button>'+
+    '<button class="btn-primary" style="background:#EF4444;" id="confirm-btn">Delete</button>'
+  );
+  document.getElementById('confirm-btn').onclick = () => { onConfirm(); closeModal(); };
+}
+
+function showToast(msg){
+  const root = document.getElementById('toast-root');
+  const el = document.createElement('div');
+  el.className = 'toast neu-card';
+  el.textContent = msg;
+  root.innerHTML = '';
+  root.appendChild(el);
+  setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 2600);
+}
+
+// ===================== Router dispatch =====================
+const chartInstances = {};
+function destroyCharts(){ Object.keys(chartInstances).forEach(k=>{ try{ chartInstances[k].destroy(); }catch(e){} delete chartInstances[k]; }); }
+
+// Chart.js / jsPDF load from a CDN with `defer` so they never block the app
+// from starting. On a slow or flaky connection they may not be ready the
+// instant a page renders, so we poll briefly before giving up rather than
+// throwing straight away.
+function whenLibReady(checkFn, cb, timeoutMs){
+  if(checkFn()){ cb(); return; }
+  const start = Date.now();
+  const iv = setInterval(()=>{
+    if(checkFn()){ clearInterval(iv); cb(); }
+    else if(Date.now()-start > (timeoutMs||10000)){ clearInterval(iv); }
+  }, 150);
+}
+
+function parseHash(){
+  const h = (location.hash || '#/').split('?')[0];
+  const parts = h.replace(/^#\//,'').split('/').filter(Boolean);
+  return { section: parts[0] || 'dashboard', id: parts[1] };
+}
+
+async function route(){
+  closeSidebar();
+  destroyCharts();
+  renderNav();
+  const { section, id } = parseHash();
+  const page = document.getElementById('page');
+  try{
+    switch(section){
+      case '': case 'dashboard': page.innerHTML = renderDashboard(); afterRenderDashboard(); break;
+      case 'clients': if(id && id!=='new'){ page.innerHTML = renderClientProfile(id); afterRenderClientProfile(id); } else { page.innerHTML = renderClients(id==='new'); afterRenderClients(id==='new'); } break;
+      case 'projects': page.innerHTML = renderProjects(); afterRenderProjects(id==='new'); break;
+      case 'tasks': page.innerHTML = renderTasks(); afterRenderTasks(id==='new'); break;
+      case 'billing': if(id){ page.innerHTML = renderInvoiceEditor(id==='new'?null:id); afterRenderInvoiceEditor(id==='new'?null:id); } else { page.innerHTML = renderBilling(); afterRenderBilling(); } break;
+      case 'calendar': page.innerHTML = renderCalendar(); afterRenderCalendar(); break;
+      case 'analytics': page.innerHTML = renderAnalytics(); afterRenderAnalytics(); break;
+      case 'documents': page.innerHTML = renderDocuments(); afterRenderDocuments(); break;
+      case 'settings': page.innerHTML = renderSettings(); afterRenderSettings(); break;
+      case 'about': page.innerHTML = renderAbout(); break;
+      default: page.innerHTML = renderDashboard(); afterRenderDashboard();
+    }
+  }catch(err){
+    console.error(err);
+    page.innerHTML = '<div class="neu-card empty"><p class="title">Something went wrong rendering this page.</p><p class="sub">'+escapeHtml(err.message)+'</p></div>';
+  }
+  window.scrollTo(0,0);
+}
+
+// ===================== Shared render helpers =====================
+function pageHeader(title, subtitle, actionHtml){
+  return '<div class="page-header"><div><h1 class="page-title">'+escapeHtml(title)+'</h1>'+(subtitle?'<p class="page-sub">'+subtitle+'</p>':'')+'</div>'+(actionHtml?'<div>'+actionHtml+'</div>':'')+'</div>';
+}
+function statCard(label, value, iconName, secondary){
+  return '<div class="neu-card stat-card"><div class="stat-icon'+(secondary?' secondary':'')+'">'+icon(iconName, 'width:20px;height:20px;stroke:#fff;')+'</div>'+
+    '<div style="min-width:0;"><p class="stat-label">'+escapeHtml(label)+'</p><p class="stat-value">'+value+'</p></div></div>';
+}
+function emptyState(title, subtitle, actionHtml){
+  return '<div class="neu-card empty"><p class="title">'+escapeHtml(title)+'</p>'+(subtitle?'<p class="sub">'+escapeHtml(subtitle)+'</p>':'')+(actionHtml||'')+'</div>';
+}
+function badge(text, tone){ return '<span class="badge b-'+(tone||'slate')+'">'+escapeHtml(text)+'</span>'; }
+function field(label, innerHtml, id){ return '<label class="field" '+(id?('for="'+id+'"'):'')+'><span class="label">'+label+'</span>'+innerHtml+'</label>'; }
+
+// ----- Custom file upload control (replaces the plain native "Choose File" button) -----
+function fileUploadField(id, opts){
+  opts = opts || {};
+  const accept = opts.accept ? ' accept="'+escapeHtml(opts.accept)+'"' : '';
+  const hint = opts.hint || 'Click to upload or drag & drop';
+  return '<div class="file-upload" id="'+id+'-wrap">'+
+    '<div class="file-upload-zone" id="'+id+'-zone">'+
+      '<input type="file" id="'+id+'"'+accept+' onchange="onFileUploadChange(\''+id+'\')"/>'+
+      '<div class="file-upload-icon">'+icon('upload','stroke:#fff;width:16px;height:16px;')+'</div>'+
+      '<p class="file-upload-title">Choose a file</p>'+
+      '<p class="file-upload-sub">'+escapeHtml(hint)+'</p>'+
+    '</div>'+
+    '<div class="file-upload-chip" id="'+id+'-chip">'+
+      '<div class="chip-icon">'+icon('file','stroke:#fff;width:15px;height:15px;')+'</div>'+
+      '<div class="chip-info"><div class="chip-name" id="'+id+'-chip-name"></div><div class="chip-size" id="'+id+'-chip-size"></div></div>'+
+      '<button type="button" class="chip-remove" onclick="clearFileUpload(\''+id+'\')" title="Remove file">'+icon('x','width:14px;height:14px;')+'</button>'+
+    '</div>'+
+  '</div>';
+}
+function formatFileSize(bytes){
+  if(bytes==null) return '';
+  if(bytes < 1024) return bytes+' B';
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/(1024*1024)).toFixed(1)+' MB';
+}
+function onFileUploadChange(id){
+  const input = document.getElementById(id);
+  const zone = document.getElementById(id+'-zone');
+  const chip = document.getElementById(id+'-chip');
+  const file = input && input.files && input.files[0];
+  if(!file){
+    if(zone) zone.style.display='';
+    if(chip) chip.classList.remove('show');
+  } else {
+    if(zone) zone.style.display='none';
+    if(chip){
+      chip.classList.add('show');
+      const nameEl = document.getElementById(id+'-chip-name');
+      const sizeEl = document.getElementById(id+'-chip-size');
+      if(nameEl) nameEl.textContent = file.name;
+      if(sizeEl) sizeEl.textContent = formatFileSize(file.size);
+    }
+  }
+  const handler = window['_onFileUpload_'+id];
+  if(typeof handler === 'function') handler(file || null);
+}
+function clearFileUpload(id){
+  const input = document.getElementById(id);
+  if(input) input.value = '';
+  onFileUploadChange(id);
+}
+function setupFileDropzone(id){
+  const input = document.getElementById(id);
+  const zone = document.getElementById(id+'-zone');
+  if(!input || !zone) return;
+  input.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  input.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  input.addEventListener('drop', () => zone.classList.remove('drag'));
+}
+
+const STATUS_TONE = { 'Not Started':'slate','In Progress':'blue','On Hold':'amber','Completed':'green','Cancelled':'red' };
+const PRIORITY_TONE = { Low:'slate', Medium:'blue', High:'amber', Urgent:'red' };
+const PAY_TONE = { Paid:'green', Pending:'amber', Overdue:'red' };
+const EVT_TONE = { Meeting:'blue', Deadline:'red', 'Invoice Due':'amber', Task:'purple' };
+
+function initial(name){ return (name||'?').trim().charAt(0).toUpperCase() || '?'; }
+function avatar(name, size){
+  size = size||44;
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:'+Math.round(size*0.36)+'px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:'+Math.round(size*0.4)+'px;background:linear-gradient(135deg,var(--primary),var(--secondary));flex-shrink:0;">'+initial(name)+'</div>';
+}
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ===================== Dashboard =====================
+function renderDashboard(){
+  const { clients, projects, invoices, tasks, calendarEvents, activity, settings } = STATE;
+  const now = new Date();
+  const activeProjects = projects.filter(p=>p.status==='In Progress'||p.status==='Not Started').length;
+  const monthlyRevenue = invoices.filter(i=> i.invoiceDate && isSameMonth(parseDateOnly(i.invoiceDate), now)).reduce((s,i)=>s+calcInvoiceTotals(i).grandTotal,0);
+  const pendingPayments = invoices.filter(i=>i.paymentStatus!=='Paid').reduce((s,i)=>s+calcInvoiceTotals(i).remaining,0);
+  const tasksDue = tasks.filter(t=>!t.completed).length;
+  const upcomingMeetings = calendarEvents.filter(e=>e.type==='Meeting' && new Date(e.date) > now).length;
+
+  const stats = statCard('Total Clients', String(clients.length), 'clients') +
+    statCard('Active Projects', String(activeProjects), 'projects', true) +
+    statCard('Monthly Revenue', fmtMoney(monthlyRevenue, settings.currency), 'billing') +
+    statCard('Pending Payments', fmtMoney(pendingPayments, settings.currency), 'billing', true) +
+    statCard('Tasks Due', String(tasksDue), 'tasks') +
+    statCard('Upcoming Meetings', String(upcomingMeetings), 'calendar', true);
+
+  const recentProjects = [...projects].sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')).slice(0,5);
+  const projectsHtml = recentProjects.length===0 ? '<p style="font-size:13px;color:var(--text-dim);">No projects yet.</p>' :
+    recentProjects.map(p=>
+      '<div class="neu-inset" style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;">'+
+        '<div style="min-width:0;"><p style="font-size:13.5px;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(p.name)+'</p><p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">'+p.status+'</p></div>'+
+        '<div style="width:96px;height:8px;border-radius:99px;background:color-mix(in srgb, var(--text-dim) 25%, transparent);overflow:hidden;flex-shrink:0;"><div style="height:100%;width:'+p.progress+'%;background:linear-gradient(90deg,var(--primary),var(--secondary));"></div></div>'+
+      '</div>'
+    ).join('');
+
+  const activityHtml = activity.length===0 ? '<p style="font-size:13px;color:var(--text-dim);">No activity yet.</p>' :
+    activity.slice(0,10).map(a=>
+      '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:13.5px;">'+badge(a.type,'blue')+
+      '<div><p style="margin:0;color:var(--text);">'+escapeHtml(a.message)+'</p><p style="margin:2px 0 0;font-size:11px;color:var(--text-dim);">'+fmtDate(a.createdAt,{time:true})+'</p></div></div>'
+    ).join('');
+
+  return pageHeader('Dashboard', "Here's what's happening across your business today.") +
+    '<div class="grid grid-stats" style="margin-bottom:24px;">'+stats+'</div>'+
+    '<div class="grid-2">'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Revenue — last 6 months</h3><div style="height:260px;"><canvas id="chart-revenue"></canvas></div></div>'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Project Progress</h3>'+
+        (projects.length===0 ? '<p style="font-size:13px;color:var(--text-dim);">No projects yet.</p>' : '<div style="height:240px;display:flex;align-items:center;justify-content:center;"><canvas id="chart-progress"></canvas></div>')+
+      '</div>'+
+    '</div>'+
+    '<div class="grid-half" style="margin-top:18px;">'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Recent Projects</h3>'+projectsHtml+'</div>'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Recent Activity</h3><div style="max-height:260px;overflow-y:auto;padding-right:6px;">'+activityHtml+'</div></div>'+
+    '</div>';
+}
+
+function afterRenderDashboard(){
+  const { invoices, projects, settings } = STATE;
+  const months = Array.from({length:6},(_,i)=>addMonths(new Date(), i-5));
+  const labels = months.map(m=>monthShort(m));
+  const data = months.map(m=> invoices.filter(i=>i.invoiceDate && ymKey(parseDateOnly(i.invoiceDate))===ymKey(m)).reduce((s,i)=>s+calcInvoiceTotals(i).grandTotal,0));
+  whenLibReady(()=>typeof Chart!=='undefined', () => {
+    const revCanvas = document.getElementById('chart-revenue');
+    if(revCanvas){
+      chartInstances.revenue = new Chart(revCanvas, {
+        type:'line',
+        data:{ labels, datasets:[{ label:'Revenue', data, borderColor:'#5B8CFF', backgroundColor:'rgba(91,140,255,0.15)', tension:.4, fill:true, pointBackgroundColor:'#7C6CFF', pointRadius:4 }] },
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'rgba(150,150,170,0.12)'}}, x:{grid:{display:false}} } }
+      });
+    }
+    const progCanvas = document.getElementById('chart-progress');
+    if(progCanvas && projects.length>0){
+      const statuses = ['Not Started','In Progress','On Hold','Completed','Cancelled'];
+      chartInstances.progress = new Chart(progCanvas, {
+        type:'doughnut',
+        data:{ labels:statuses, datasets:[{ data: statuses.map(s=>projects.filter(p=>p.status===s).length), backgroundColor:['#CBD5E1','#5B8CFF','#F59E0B','#22C55E','#EF4444'], borderWidth:0 }] },
+        options:{ plugins:{ legend:{position:'bottom', labels:{boxWidth:10, font:{size:10}}} } }
+      });
+    }
+  });
+}
+
+// ===================== Clients =====================
+let clientsSearchTerm = '';
+function renderClients(openNew){
+  const list = STATE.clients.filter(c=>{
+    const q = clientsSearchTerm.toLowerCase();
+    return !q || c.name.toLowerCase().includes(q) || (c.company||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q);
+  });
+  const cardsHtml = list.length===0 ? emptyState('No clients found','Add your first client to start tracking projects and invoices.','<button class="btn-primary" style="margin-top:8px;" onclick="openClientModal()">Add Client</button>') :
+    '<div class="grid grid-cards">' + list.map(c=>
+      '<div class="neu-card" style="padding:20px;cursor:pointer;" onclick="location.hash=\'#/clients/'+c.id+'\'">'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;">'+avatar(c.name,44)+
+        '<button onclick="event.stopPropagation();confirmDialog(\'Delete client?\',\'This will remove the client permanently.\',()=>deleteClientRec(\''+c.id+'\').then(route))" style="padding:6px;color:var(--text-dim);">'+icon('trash')+'</button></div>'+
+        '<p style="font-weight:600;margin:12px 0 0;">'+escapeHtml(c.name)+'</p>'+
+        (c.company? '<p style="font-size:12px;color:var(--text-dim);margin:4px 0 0;display:flex;align-items:center;gap:5px;">'+icon('building','width:12px;height:12px;')+escapeHtml(c.company)+'</p>' : '')+
+        (c.email? '<p style="font-size:12px;color:var(--text-dim);margin:6px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(c.email)+'</p>' : '')+
+        (c.phone? '<p style="font-size:12px;color:var(--text-dim);margin:2px 0 0;">'+escapeHtml(c.phone)+'</p>' : '')+
+      '</div>'
+    ).join('') + '</div>';
+
+  const html = pageHeader('Clients', list.length+' client'+(list.length===1?'':'s')+' in your workspace', '<button class="btn-primary" onclick="openClientModal()">'+icon('plus','stroke:#fff;')+' Add Client</button>') +
+    '<div class="neu-inset" style="display:flex;align-items:center;gap:10px;padding:12px 16px;max-width:380px;margin-bottom:24px;">'+icon('search','color:var(--text-dim);')+'<input id="client-search" class="input" style="background:transparent;box-shadow:none;padding:0;" placeholder="Search clients..." value="'+escapeHtml(clientsSearchTerm)+'"/></div>'+
+    cardsHtml;
+  return html;
+}
+function afterRenderClients(openNew){
+  const search = document.getElementById('client-search');
+  if(search) search.oninput = debounce(e=>{ clientsSearchTerm = e.target.value; const pos = e.target.selectionStart; document.getElementById('page').innerHTML = renderClients(); afterRenderClients(); refocusInput('client-search', pos); }, 200);
+  if(openNew) openClientModal();
+}
+function openClientModal(existing){
+  const c = existing || { id: uid(), name:'', company:'', phone:'', email:'', address:'', gstNumber:'', notes:'' };
+  const body =
+    field('Full Name *', '<input class="input" id="cf-name" value="'+escapeHtml(c.name)+'" placeholder="Jane Doe"/>')+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'+
+      field('Company', '<input class="input" id="cf-company" value="'+escapeHtml(c.company||'')+'" placeholder="Acme Inc."/>')+
+      field('Phone *', '<input class="input" id="cf-phone" type="tel" inputmode="tel" value="'+escapeHtml(c.phone||'')+'" placeholder="+91 98765 43210"/>')+
+    '</div>'+
+    field('Email *', '<input class="input" id="cf-email" type="email" value="'+escapeHtml(c.email||'')+'" placeholder="jane@acme.com"/>')+
+    field('Address', '<textarea class="input" id="cf-address" rows="2">'+escapeHtml(c.address||'')+'</textarea>')+
+    field('GST Number', '<input class="input" id="cf-gst" value="'+escapeHtml(c.gstNumber||'')+'" placeholder="22AAAAA0000A1Z5"/>')+
+    field('Notes', '<textarea class="input" id="cf-notes" rows="3">'+escapeHtml(c.notes||'')+'</textarea>');
+  openModal(existing?'Edit Client':'Add Client', body,
+    '<button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-primary" id="cf-save">Save Client</button>');
+  document.getElementById('cf-save').onclick = async () => {
+    const nameEl = document.getElementById('cf-name');
+    const phoneEl = document.getElementById('cf-phone');
+    const emailEl = document.getElementById('cf-email');
+    const name = nameEl.value.trim();
+    const phone = phoneEl.value.trim();
+    const email = emailEl.value.trim();
+    if(!name){ showToast('Name is required'); markFieldInvalid(nameEl); return; }
+    if(!phone){ showToast('Phone number is required'); markFieldInvalid(phoneEl); return; }
+    if(!isValidPhone(phone)){ showToast('Enter a valid phone number'); markFieldInvalid(phoneEl); return; }
+    if(!email){ showToast('Email is required'); markFieldInvalid(emailEl); return; }
+    if(!isValidEmail(email)){ showToast('Enter a valid email address'); markFieldInvalid(emailEl); return; }
+    const updated = Object.assign({}, c, {
+      name, company: document.getElementById('cf-company').value.trim(),
+      phone, email,
+      address: document.getElementById('cf-address').value.trim(),
+      gstNumber: document.getElementById('cf-gst').value.trim(),
+      notes: document.getElementById('cf-notes').value.trim()
+    });
+    await saveClient(updated);
+    closeModal();
+    if(!existing) location.hash = '#/clients'; else route();
+    showToast('Client saved');
+  };
+}
+
+// ===================== Client Profile =====================
+function renderClientProfile(id){
+  const client = STATE.clients.find(c=>c.id===id);
+  if(!client) return emptyState('Client not found','It may have been deleted.', '<button class="btn-primary" style="margin-top:8px;" onclick="location.hash=\'#/clients\'">Back to Clients</button>');
+  const clientProjects = STATE.projects.filter(p=>p.clientId===id);
+  const clientInvoices = STATE.invoices.filter(i=>i.clientId===id);
+
+  const infoRows = [
+    client.phone ? ['phone', client.phone] : null,
+    client.email ? ['mail', client.email] : null,
+    client.address ? ['pin', client.address] : null,
+    client.gstNumber ? ['fileText', 'GSTIN: '+client.gstNumber] : null
+  ].filter(Boolean).map(([ic,val])=>'<div style="display:flex;align-items:center;gap:10px;font-size:13.5px;margin-bottom:10px;">'+icon(ic,'color:var(--primary);flex-shrink:0;')+'<span style="overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(val)+'</span></div>').join('');
+
+  const projectsHtml = clientProjects.length===0 ? '<p style="font-size:13px;color:var(--text-dim);">No projects linked to this client.</p>' :
+    clientProjects.map(p=>'<div class="neu-inset" style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;cursor:pointer;" onclick="location.hash=\'#/projects\'"><span style="font-size:13.5px;font-weight:500;">'+escapeHtml(p.name)+'</span>'+badge(p.status,'blue')+'</div>').join('');
+
+  const invoicesHtml = clientInvoices.length===0 ? '<p style="font-size:13px;color:var(--text-dim);">No invoices yet.</p>' :
+    clientInvoices.map(inv=>{ const t = calcInvoiceTotals(inv); return '<div class="neu-inset" style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;cursor:pointer;" onclick="location.hash=\'#/billing/'+inv.id+'\'">'+
+      '<div><p style="margin:0;font-size:13.5px;font-weight:500;">'+escapeHtml(inv.invoiceNumber)+'</p><p style="margin:2px 0 0;font-size:11.5px;color:var(--text-dim);">'+fmtDate(inv.invoiceDate)+'</p></div>'+
+      '<div style="text-align:right;"><p style="margin:0;font-size:13.5px;font-weight:700;">'+fmtMoney(t.grandTotal, STATE.settings.currency)+'</p>'+badge(inv.paymentStatus, PAY_TONE[inv.paymentStatus])+'</div></div>'; }).join('');
+
+  return '<button class="btn-ghost" style="margin-bottom:20px;" onclick="location.hash=\'#/clients\'">'+icon('back')+' Back</button>'+
+    '<div class="neu-card" style="padding:24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">'+
+      '<div style="display:flex;align-items:center;gap:16px;">'+avatar(client.name,64)+
+      '<div><h1 style="margin:0;font-size:20px;font-weight:800;">'+escapeHtml(client.name)+'</h1>'+(client.company?'<p style="margin:2px 0 0;font-size:13px;color:var(--text-dim);">'+escapeHtml(client.company)+'</p>':'')+'</div></div>'+
+      '<button class="btn-ghost" onclick=\'openClientModalById("'+client.id+'")\'>'+icon('edit')+' Edit</button>'+
+    '</div>'+
+    '<div class="grid-2">'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 14px;font-weight:700;font-size:15px;">Contact Info</h3>'+(infoRows||'<p style="font-size:13px;color:var(--text-dim);">No contact details added.</p>')+(client.notes?'<div class="neu-inset" style="padding:12px 16px;margin-top:10px;font-size:12.5px;color:var(--text-dim);">'+escapeHtml(client.notes)+'</div>':'')+'</div>'+
+      '<div style="display:flex;flex-direction:column;gap:18px;">'+
+        '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 14px;font-weight:700;font-size:15px;">Projects ('+clientProjects.length+')</h3>'+projectsHtml+'</div>'+
+        '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 14px;font-weight:700;font-size:15px;">Billing History ('+clientInvoices.length+')</h3>'+invoicesHtml+'</div>'+
+        '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 14px;font-weight:700;font-size:15px;">Attachments</h3><p style="font-size:13px;color:var(--text-dim);">Manage client files from the Documents section.</p></div>'+
+      '</div>'+
+    '</div>';
+}
+function afterRenderClientProfile(id){}
+function openClientModalById(id){ const c = STATE.clients.find(x=>x.id===id); openClientModal(c); }
+
+// ===================== Projects =====================
+let projectStatusFilter = 'All';
+const PROJECT_STATUSES = ['Not Started','In Progress','On Hold','Completed','Cancelled'];
+const PRIORITIES = ['Low','Medium','High','Urgent'];
+
+function renderProjects(){
+  const list = projectStatusFilter==='All' ? STATE.projects : STATE.projects.filter(p=>p.status===projectStatusFilter);
+  const chips = ['All',...PROJECT_STATUSES].map(s=>'<button class="chip'+(projectStatusFilter===s?' active':'')+'" onclick="projectStatusFilter=\''+s+'\';route();">'+s+'</button>').join('');
+  const clientName = id => { const c = STATE.clients.find(x=>x.id===id); return c? c.name : '—'; };
+
+  const cards = list.length===0 ? emptyState('No projects here','Create a project to start tracking progress, deadlines and budgets.','<button class="btn-primary" style="margin-top:8px;" onclick="openProjectModal()">New Project</button>') :
+    '<div class="grid grid-cards">'+list.map(p=>
+      '<div class="neu-card" style="padding:20px;cursor:pointer;" onclick=\'openProjectModal(STATE.projects.find(x=>x.id==="'+p.id+'"))\'>'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;">'+badge(p.status, STATUS_TONE[p.status])+
+        '<button onclick="event.stopPropagation();confirmDialog(\'Delete project?\',\'This will permanently remove the project.\',()=>deleteProjectRec(\''+p.id+'\').then(route))" style="padding:4px;color:var(--text-dim);">'+icon('trash','width:15px;height:15px;')+'</button></div>'+
+        '<p style="font-weight:600;margin:10px 0 0;">'+escapeHtml(p.name||'Untitled Project')+'</p>'+
+        '<p style="font-size:12px;color:var(--text-dim);margin:2px 0 0;">'+escapeHtml(clientName(p.clientId))+'</p>'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;">'+badge(p.priority, PRIORITY_TONE[p.priority])+(p.deadline?'<span style="font-size:11px;color:var(--text-dim);">'+icon('calendar','width:11px;height:11px;')+' '+fmtDate(p.deadline,{short:true})+'</span>':'')+'</div>'+
+        '<div class="progress-bar" style="margin-top:14px;"><div class="progress-fill" style="width:'+p.progress+'%;"></div></div>'+
+        '<p style="font-size:11px;color:var(--text-dim);margin:5px 0 0;">'+p.progress+'% complete</p>'+
+        (p.budget!=null? '<p style="font-size:12px;margin:8px 0 0;color:var(--text-dim);">Budget: '+fmtMoney(p.budget, STATE.settings.currency)+'</p>':'')+
+      '</div>'
+    ).join('')+'</div>';
+
+  return pageHeader('Projects', STATE.projects.length+' project'+(STATE.projects.length===1?'':'s')+' tracked', '<button class="btn-primary" onclick="openProjectModal()">'+icon('plus','stroke:#fff;')+' New Project</button>')+
+    '<div class="chip-row">'+chips+'</div>'+cards;
+}
+function afterRenderProjects(openNew){ if(openNew) openProjectModal(); }
+
+function emptyProject(){ return { id: uid(), name:'', status:'Not Started', priority:'Medium', progress:0, timeline:[], attachments:[], clientId:'', budget:null, deadline:'', assignedNotes:'' }; }
+
+function openProjectModal(existing){
+  const p = existing ? JSON.parse(JSON.stringify(existing)) : emptyProject();
+  renderProjectModalBody(p, !existing);
+}
+function renderProjectModalBody(p, isNew){
+  const clientOptions = '<option value="">— None —</option>' + STATE.clients.map(c=>'<option value="'+c.id+'"'+(p.clientId===c.id?' selected':'')+'>'+escapeHtml(c.name)+'</option>').join('');
+  const statusOptions = PROJECT_STATUSES.map(s=>'<option'+(p.status===s?' selected':'')+'>'+s+'</option>').join('');
+  const priorityOptions = PRIORITIES.map(s=>'<option'+(p.priority===s?' selected':'')+'>'+s+'</option>').join('');
+
+  const timelineHtml = (p.timeline||[]).map(t=>
+    '<div class="neu-inset" style="padding:9px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:13px;">'+
+      '<span>'+escapeHtml(t.label)+'</span><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:11px;color:var(--text-dim);">'+fmtDate(t.date,{short:true})+'</span>'+
+      '<button onclick=\'removeTimelineItem("'+p.id+'","'+t.id+'")\' style="color:var(--text-dim);">'+icon('trash','width:13px;height:13px;')+'</button></div></div>'
+  ).join('');
+
+  const attachHtml = (p.attachments||[]).map(a=>
+    '<span class="neu-inset" style="padding:6px 12px;font-size:12px;display:inline-flex;align-items:center;gap:8px;margin:0 6px 6px 0;">'+escapeHtml(a.name)+
+    '<button onclick=\'removeAttachment("'+p.id+'","'+a.id+'")\' style="color:var(--text-dim);">'+icon('trash','width:12px;height:12px;')+'</button></span>'
+  ).join('');
+
+  const body =
+    field('Project Name *', '<input class="input" id="pf-name" value="'+escapeHtml(p.name)+'" placeholder="Website Redesign"/>')+
+    field('Client', '<select class="input" id="pf-client">'+clientOptions+'</select>')+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'+
+      field('Status', '<select class="input" id="pf-status">'+statusOptions+'</select>')+
+      field('Priority', '<select class="input" id="pf-priority">'+priorityOptions+'</select>')+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'+
+      field('Budget', '<input type="number" class="input" id="pf-budget" value="'+(p.budget!=null?p.budget:'')+'"/>')+
+      field('Deadline', '<input type="date" class="input" id="pf-deadline" value="'+(p.deadline?p.deadline.slice(0,10):'')+'"/>')+
+    '</div>'+
+    field('Progress — <span id="pf-progress-val">'+p.progress+'</span>%', '<input type="range" min="0" max="100" id="pf-progress" value="'+p.progress+'" style="width:100%;accent-color:var(--primary);" oninput="document.getElementById(\'pf-progress-val\').textContent=this.value"/>')+
+    field('Assigned Notes', '<textarea class="input" id="pf-notes" rows="3">'+escapeHtml(p.assignedNotes||'')+'</textarea>')+
+    '<div style="margin-bottom:16px;"><p class="label">Timeline</p><div style="display:flex;gap:8px;margin-bottom:10px;"><input class="input" id="pf-timeline-input" placeholder="Milestone reached..."/><button class="btn-ghost" style="flex-shrink:0;" onclick=\'addTimelineItem("'+p.id+'")\'>Add</button></div><div id="pf-timeline-list">'+timelineHtml+'</div></div>'+
+    '<div><p class="label">Attachments</p><label class="neu-btn" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;font-size:13px;cursor:pointer;">'+icon('paperclip','width:14px;height:14px;')+' Add File<input type="file" style="display:none;" id="pf-file-input" onchange=\'handleProjectFile("'+p.id+'")\'/></label><div id="pf-attach-list" style="margin-top:10px;">'+attachHtml+'</div></div>';
+
+  openModal(p.name?'Edit Project':'New Project', body,
+    '<button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-primary" id="pf-save">Save Project</button>', { wide:true });
+
+  window._editingProject = p;
+
+  document.getElementById('pf-save').onclick = async () => {
+    const name = document.getElementById('pf-name').value.trim();
+    if(!name){ showToast('Project name is required'); return; }
+    const updated = Object.assign({}, window._editingProject, {
+      name,
+      clientId: document.getElementById('pf-client').value || undefined,
+      status: document.getElementById('pf-status').value,
+      priority: document.getElementById('pf-priority').value,
+      budget: document.getElementById('pf-budget').value ? Number(document.getElementById('pf-budget').value) : null,
+      deadline: document.getElementById('pf-deadline').value || '',
+      progress: Number(document.getElementById('pf-progress').value),
+      assignedNotes: document.getElementById('pf-notes').value.trim()
+    });
+    await saveProjectRec(updated);
+    closeModal();
+    if(location.hash.indexOf('#/projects')!==0) location.hash='#/projects'; else route();
+    showToast('Project saved');
+  };
+}
+function addTimelineItem(pid){
+  const input = document.getElementById('pf-timeline-input');
+  const label = input.value.trim();
+  if(!label) return;
+  window._editingProject.timeline = window._editingProject.timeline || [];
+  window._editingProject.timeline.push({ id: uid(), label, date: nowISO() });
+  input.value='';
+  document.getElementById('pf-timeline-list').innerHTML = window._editingProject.timeline.map(t=>
+    '<div class="neu-inset" style="padding:9px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:13px;">'+
+      '<span>'+escapeHtml(t.label)+'</span><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:11px;color:var(--text-dim);">'+fmtDate(t.date,{short:true})+'</span>'+
+      '<button onclick=\'removeTimelineItem("'+pid+'","'+t.id+'")\' style="color:var(--text-dim);">'+icon('trash','width:13px;height:13px;')+'</button></div></div>'
+  ).join('');
+}
+function removeTimelineItem(pid, tid){
+  window._editingProject.timeline = (window._editingProject.timeline||[]).filter(t=>t.id!==tid);
+  document.getElementById('pf-timeline-list').innerHTML = window._editingProject.timeline.map(t=>
+    '<div class="neu-inset" style="padding:9px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:13px;">'+
+      '<span>'+escapeHtml(t.label)+'</span><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:11px;color:var(--text-dim);">'+fmtDate(t.date,{short:true})+'</span>'+
+      '<button onclick=\'removeTimelineItem("'+pid+'","'+t.id+'")\' style="color:var(--text-dim);">'+icon('trash','width:13px;height:13px;')+'</button></div></div>'
+  ).join('');
+}
+async function handleProjectFile(pid){
+  const inp = document.getElementById('pf-file-input');
+  const file = inp.files[0];
+  if(!file) return;
+  const dataUrl = await readFileAsDataUrl(file);
+  window._editingProject.attachments = window._editingProject.attachments || [];
+  window._editingProject.attachments.push({ id: uid(), name:file.name, type:file.type, size:file.size, dataUrl, addedAt: nowISO() });
+  document.getElementById('pf-attach-list').innerHTML = window._editingProject.attachments.map(a=>
+    '<span class="neu-inset" style="padding:6px 12px;font-size:12px;display:inline-flex;align-items:center;gap:8px;margin:0 6px 6px 0;">'+escapeHtml(a.name)+
+    '<button onclick=\'removeAttachment("'+pid+'","'+a.id+'")\' style="color:var(--text-dim);">'+icon('trash','width:12px;height:12px;')+'</button></span>'
+  ).join('');
+}
+function removeAttachment(pid, aid){
+  window._editingProject.attachments = (window._editingProject.attachments||[]).filter(a=>a.id!==aid);
+  document.getElementById('pf-attach-list').innerHTML = window._editingProject.attachments.map(a=>
+    '<span class="neu-inset" style="padding:6px 12px;font-size:12px;display:inline-flex;align-items:center;gap:8px;margin:0 6px 6px 0;">'+escapeHtml(a.name)+
+    '<button onclick=\'removeAttachment("'+pid+'","'+a.id+'")\' style="color:var(--text-dim);">'+icon('trash','width:12px;height:12px;')+'</button></span>'
+  ).join('');
+}
+
+// ===================== Tasks =====================
+let taskTab = 'active';
+function renderTasks(){
+  const active = STATE.tasks.filter(t=>!t.completed).sort((a,b)=>(a.dueDate||'').localeCompare(b.dueDate||''));
+  const completed = STATE.tasks.filter(t=>t.completed);
+  const list = taskTab==='active' ? active : completed;
+  const projectName = id => { const p = STATE.projects.find(x=>x.id===id); return p ? p.name : ''; };
+
+  const tabs = ['active','completed'].map(t=>'<button class="chip'+(taskTab===t?' active':'')+'" style="text-transform:capitalize;" onclick="taskTab=\''+t+'\';route();">'+t+'</button>').join('');
+
+  const listHtml = list.length===0 ? emptyState(taskTab==='active'?'No active tasks':'No completed tasks yet','Stay on top of your to-dos.', taskTab==='active' ? '<button class="btn-primary" style="margin-top:8px;" onclick="openTaskModal()">New Task</button>' : '') :
+    list.map(t=>{
+      const overdue = t.dueDate && !t.completed && isPastDate(t.dueDate);
+      const checklistHtml = (t.checklist||[]).map(item=>
+        '<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);margin-top:4px;" onclick="event.stopPropagation();"><input type="checkbox" '+(item.done?'checked':'')+' onchange=\'toggleChecklistItem("'+t.id+'","'+item.id+'")\'/> <span style="'+(item.done?'text-decoration:line-through;opacity:.5;':'')+'">'+escapeHtml(item.text)+'</span></label>'
+      ).join('');
+      return '<div class="neu-card" style="padding:16px;display:flex;align-items:flex-start;gap:14px;margin-bottom:12px;">'+
+        '<button onclick=\'toggleTaskComplete("'+t.id+'")\' style="margin-top:2px;color:var(--primary);flex-shrink:0;">'+icon(t.completed?'check':'circle', t.completed?'':'color:var(--text-dim);')+'</button>'+
+        '<div style="flex:1;min-width:0;cursor:pointer;" onclick=\'openTaskModal(STATE.tasks.find(x=>x.id==="'+t.id+'"))\'>'+
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+
+            '<span style="font-weight:600;font-size:14px;'+(t.completed?'text-decoration:line-through;opacity:.5;':'')+'">'+escapeHtml(t.title)+'</span>'+
+            badge(t.priority, PRIORITY_TONE[t.priority])+
+            (t.recurrence && t.recurrence!=='None' ? badge(t.recurrence,'purple') : '')+
+            (overdue ? badge('Overdue','red') : '')+
+          '</div>'+
+          (projectName(t.projectId)? '<p style="margin:6px 0 0;font-size:12px;color:var(--text-dim);">'+escapeHtml(projectName(t.projectId))+'</p>' : '')+
+          (t.dueDate? '<p style="margin:2px 0 0;font-size:12px;color:var(--text-dim);">Due '+fmtDate(t.dueDate)+'</p>' : '')+
+          checklistHtml+
+        '</div>'+
+        '<button onclick=\'confirmDialog("Delete task?","This task will be removed permanently.",()=>deleteTaskRec("'+t.id+'").then(route))\' style="color:var(--text-dim);flex-shrink:0;">'+icon('trash')+'</button>'+
+      '</div>';
+    }).join('');
+
+  return pageHeader('Tasks', active.length+' active, '+completed.length+' completed', '<button class="btn-primary" onclick="openTaskModal()">'+icon('plus','stroke:#fff;')+' New Task</button>')+
+    '<div class="chip-row">'+tabs+'</div>'+listHtml;
+}
+function afterRenderTasks(openNew){ if(openNew) openTaskModal(); }
+
+// Advances a "YYYY-MM-DD" due date by one recurrence step. Returns '' if there's
+// nothing to advance (no due date, or recurrence is 'None'/unrecognized).
+function nextRecurrenceDate(dueDate, recurrence){
+  if(!dueDate || !recurrence || recurrence==='None') return '';
+  const d = parseDateOnly(dueDate);
+  if(!d) return '';
+  if(recurrence==='Daily') d.setDate(d.getDate()+1);
+  else if(recurrence==='Weekly') d.setDate(d.getDate()+7);
+  else if(recurrence==='Monthly') d.setMonth(d.getMonth()+1);
+  else return '';
+  const pad = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+async function toggleTaskComplete(id){
+  const t = STATE.tasks.find(x=>x.id===id);
+  if(!t) return;
+  const completing = !t.completed;
+  await saveTaskRec(Object.assign({}, t, { completed: completing, completedAt: completing ? nowISO() : undefined }));
+  // Recurring tasks: completing one schedules the next occurrence instead of
+  // the recurrence label being purely decorative.
+  if(completing && t.recurrence && t.recurrence!=='None'){
+    const newDue = nextRecurrenceDate(t.dueDate, t.recurrence);
+    if(newDue){
+      await saveTaskRec(Object.assign({}, emptyTask(), {
+        id: uid(),
+        title: t.title,
+        description: t.description||'',
+        priority: t.priority,
+        recurrence: t.recurrence,
+        projectId: t.projectId||'',
+        dueDate: newDue,
+        checklist: (t.checklist||[]).map(c=>({ id: uid(), text:c.text, done:false }))
+      }));
+      showToast('Next "'+t.title+'" scheduled for '+fmtDate(newDue,{short:true}));
+    }
+  }
+  route();
+}
+async function toggleChecklistItem(taskId, itemId){
+  const t = STATE.tasks.find(x=>x.id===taskId);
+  if(!t) return;
+  const checklist = t.checklist.map(c=>c.id===itemId?Object.assign({},c,{done:!c.done}):c);
+  await saveTaskRec(Object.assign({}, t, { checklist }));
+  route();
+}
+
+function emptyTask(){ return { id: uid(), title:'', priority:'Medium', checklist:[], recurrence:'None', completed:false, projectId:'', dueDate:'', description:'' }; }
+const RECURRENCE = ['None','Daily','Weekly','Monthly'];
+
+function openTaskModal(existing){
+  const t = existing ? JSON.parse(JSON.stringify(existing)) : emptyTask();
+  window._editingTask = t;
+  renderTaskModalBody(t);
+}
+function renderTaskModalBody(t){
+  const projectOptions = '<option value="">— None —</option>' + STATE.projects.map(p=>'<option value="'+p.id+'"'+(t.projectId===p.id?' selected':'')+'>'+escapeHtml(p.name)+'</option>').join('');
+  const priorityOptions = PRIORITIES.map(p=>'<option'+(t.priority===p?' selected':'')+'>'+p+'</option>').join('');
+  const recurrenceOptions = RECURRENCE.map(r=>'<option'+(t.recurrence===r?' selected':'')+'>'+r+'</option>').join('');
+  const checklistHtml = (t.checklist||[]).map(item=>
+    '<div class="neu-inset" style="padding:9px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:13px;">'+
+      '<label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" '+(item.done?'checked':'')+' onchange=\'toggleEditingChecklistItem("'+item.id+'")\'/><span style="'+(item.done?'text-decoration:line-through;opacity:.5;':'')+'">'+escapeHtml(item.text)+'</span></label>'+
+      '<button onclick=\'removeChecklistItem("'+item.id+'")\' style="color:var(--text-dim);">'+icon('trash','width:13px;height:13px;')+'</button></div>'
+  ).join('');
+
+  const body =
+    field('Title *', '<input class="input" id="tf-title" value="'+escapeHtml(t.title)+'" placeholder="Follow up with client"/>')+
+    field('Description', '<textarea class="input" id="tf-desc" rows="2">'+escapeHtml(t.description||'')+'</textarea>')+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'+
+      field('Priority', '<select class="input" id="tf-priority">'+priorityOptions+'</select>')+
+      field('Due Date', '<input type="date" class="input" id="tf-due" value="'+(t.dueDate?t.dueDate.slice(0,10):'')+'"/>')+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'+
+      field('Project', '<select class="input" id="tf-project">'+projectOptions+'</select>')+
+      field('Recurring', '<select class="input" id="tf-recurrence">'+recurrenceOptions+'</select>')+
+    '</div>'+
+    '<div><p class="label">Checklist</p><div style="display:flex;gap:8px;margin-bottom:10px;"><input class="input" id="tf-checklist-input" placeholder="Add a checklist item..."/><button class="btn-ghost" style="flex-shrink:0;" onclick="addChecklistItem()">Add</button></div><div id="tf-checklist-list">'+checklistHtml+'</div></div>';
+
+  openModal(t.title?'Edit Task':'New Task', body,
+    '<button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-primary" id="tf-save">Save Task</button>');
+
+  document.getElementById('tf-checklist-input').onkeydown = e => { if(e.key==='Enter'){ e.preventDefault(); addChecklistItem(); } };
+  document.getElementById('tf-save').onclick = async () => {
+    const title = document.getElementById('tf-title').value.trim();
+    if(!title){ showToast('Title is required'); return; }
+    const updated = Object.assign({}, window._editingTask, {
+      title,
+      description: document.getElementById('tf-desc').value.trim(),
+      priority: document.getElementById('tf-priority').value,
+      dueDate: document.getElementById('tf-due').value || '',
+      projectId: document.getElementById('tf-project').value || undefined,
+      recurrence: document.getElementById('tf-recurrence').value
+    });
+    await saveTaskRec(updated);
+    closeModal();
+    if(location.hash.indexOf('#/tasks')!==0) location.hash='#/tasks'; else route();
+    showToast('Task saved');
+  };
+}
+function addChecklistItem(){
+  const input = document.getElementById('tf-checklist-input');
+  const text = input.value.trim();
+  if(!text) return;
+  window._editingTask.checklist = window._editingTask.checklist || [];
+  window._editingTask.checklist.push({ id: uid(), text, done:false });
+  input.value='';
+  refreshChecklistList();
+}
+function toggleEditingChecklistItem(itemId){
+  window._editingTask.checklist = window._editingTask.checklist.map(c=>c.id===itemId?Object.assign({},c,{done:!c.done}):c);
+  refreshChecklistList();
+}
+function removeChecklistItem(itemId){
+  window._editingTask.checklist = window._editingTask.checklist.filter(c=>c.id!==itemId);
+  refreshChecklistList();
+}
+function refreshChecklistList(){
+  document.getElementById('tf-checklist-list').innerHTML = window._editingTask.checklist.map(item=>
+    '<div class="neu-inset" style="padding:9px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:13px;">'+
+      '<label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" '+(item.done?'checked':'')+' onchange=\'toggleEditingChecklistItem("'+item.id+'")\'/><span style="'+(item.done?'text-decoration:line-through;opacity:.5;':'')+'">'+escapeHtml(item.text)+'</span></label>'+
+      '<button onclick=\'removeChecklistItem("'+item.id+'")\' style="color:var(--text-dim);">'+icon('trash','width:13px;height:13px;')+'</button></div>'
+  ).join('');
+}
+
+// ===================== Billing (list) =====================
+let billingSearchTerm = '';
+function renderBilling(){
+  const list = STATE.invoices.filter(i=>{
+    const q = billingSearchTerm.toLowerCase();
+    return !q || i.invoiceNumber.toLowerCase().includes(q) || (i.clientName||'').toLowerCase().includes(q);
+  });
+  const outstanding = STATE.invoices.filter(i=>i.paymentStatus!=='Paid').reduce((s,i)=>s+calcInvoiceTotals(i).remaining,0);
+
+  const rows = list.map(inv=>{
+    const t = calcInvoiceTotals(inv);
+    return '<tr class="row-click" onclick="location.hash=\'#/billing/'+inv.id+'\'">'+
+      '<td style="font-weight:600;">'+escapeHtml(inv.invoiceNumber)+'</td>'+
+      '<td style="color:var(--text-dim);">'+escapeHtml(inv.clientName)+'</td>'+
+      '<td style="color:var(--text-dim);">'+fmtDate(inv.invoiceDate)+'</td>'+
+      '<td style="color:var(--text-dim);">'+fmtDate(inv.dueDate)+'</td>'+
+      '<td style="text-align:right;font-weight:700;">'+fmtMoney(t.grandTotal, STATE.settings.currency)+'</td>'+
+      '<td>'+badge(inv.paymentStatus, PAY_TONE[inv.paymentStatus])+'</td>'+
+      '<td style="text-align:right;" onclick="event.stopPropagation();">'+
+        '<button class="neu-btn" style="padding:8px;margin-right:6px;" onclick=\'downloadInvoicePDF(STATE.invoices.find(x=>x.id==="'+inv.id+'"))\'>'+icon('download','width:14px;height:14px;')+'</button>'+
+        '<button class="neu-btn" style="padding:8px;color:#EF4444;" onclick=\'confirmDialog("Delete invoice?","This invoice will be permanently removed.",()=>deleteInvoiceRec("'+inv.id+'").then(route))\'>'+icon('trash','width:14px;height:14px;')+'</button>'+
+      '</td></tr>';
+  }).join('');
+
+  const tableHtml = list.length===0 ? emptyState('No invoices yet','Create your first invoice to start billing clients.','<button class="btn-primary" style="margin-top:8px;" onclick="location.hash=\'#/billing/new\'">New Invoice</button>') :
+    '<div class="neu-card" style="overflow-x:auto;"><table class="data-table" style="min-width:720px;"><thead><tr><th>Invoice #</th><th>Client</th><th>Date</th><th>Due</th><th style="text-align:right;">Total</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+
+  return pageHeader('Billing', STATE.invoices.length+' invoice'+(STATE.invoices.length===1?'':'s')+' \u00b7 '+fmtMoney(outstanding, STATE.settings.currency)+' outstanding', '<button class="btn-primary" onclick="location.hash=\'#/billing/new\'">'+icon('plus','stroke:#fff;')+' New Invoice</button>')+
+    '<div class="neu-inset" style="display:flex;align-items:center;gap:10px;padding:12px 16px;max-width:380px;margin-bottom:24px;">'+icon('search','color:var(--text-dim);')+'<input id="billing-search" class="input" style="background:transparent;box-shadow:none;padding:0;" placeholder="Search invoice # or client..." value="'+escapeHtml(billingSearchTerm)+'"/></div>'+
+    tableHtml;
+}
+function afterRenderBilling(){
+  const search = document.getElementById('billing-search');
+  if(search) search.oninput = debounce(e=>{ billingSearchTerm = e.target.value; const pos = e.target.selectionStart; document.getElementById('page').innerHTML = renderBilling(); afterRenderBilling(); refocusInput('billing-search', pos); }, 200);
+}
+
+// ===================== Invoice Editor =====================
+function newInvoiceItem(){ return { id: uid(), serviceName:'', description:'', quantity:1, price:0, taxPercent: STATE.settings.taxPercent||0, discountPercent:0 }; }
+function nextInvoiceNumber(){
+  const prefix = STATE.settings.invoicePrefix || 'INV';
+  const nums = STATE.invoices.filter(i=>i.invoiceNumber && i.invoiceNumber.indexOf(prefix)===0)
+    .map(i=>parseInt(i.invoiceNumber.replace(prefix,'').replace(/\D/g,''),10)).filter(n=>!isNaN(n));
+  const next = (nums.length? Math.max(...nums): 0) + 1;
+  return prefix+'-'+String(next).padStart(4,'0');
+}
+
+function renderInvoiceEditor(invoiceId){
+  const existing = invoiceId ? STATE.invoices.find(i=>i.id===invoiceId) : null;
+  const inv = existing ? JSON.parse(JSON.stringify(existing)) : {
+    id: uid(), invoiceNumber: nextInvoiceNumber(), invoiceDate: todayStr(),
+    dueDate: new Date(Date.now()+7*86400000).toISOString().slice(0,10),
+    clientName:'', items:[newInvoiceItem()], amountPaid:0, paymentStatus:'Pending', notes:''
+  };
+  window._editingInvoice = inv;
+
+  return '<button class="btn-ghost" style="margin-bottom:20px;" onclick="location.hash=\'#/billing\'">'+icon('back')+' Back to Billing</button>'+
+    pageHeader(existing? 'Edit '+inv.invoiceNumber : 'New Invoice', 'Fill in details — totals calculate automatically.')+
+    '<div class="grid-2"><div style="display:flex;flex-direction:column;gap:18px;">'+
+      invoiceDetailsCard(inv)+
+      clientInfoCard(inv)+
+      itemsCard(inv)+
+      '<div class="neu-card" style="padding:24px;">'+field('Notes', '<textarea class="input" id="if-notes" rows="3" placeholder="Payment terms, thank you note...">'+escapeHtml(inv.notes||'')+'</textarea>')+'</div>'+
+    '</div>'+
+    '<div id="invoice-summary-wrap"></div>'+
+    '</div>';
+}
+function invoiceDetailsCard(inv){
+  return '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Invoice Details</h3>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'+
+      field('Invoice Number', '<input class="input" id="if-number" value="'+escapeHtml(inv.invoiceNumber)+'"/>')+
+      field('Payment Status', '<select class="input" id="if-status">'+['Paid','Pending','Overdue'].map(s=>'<option'+(inv.paymentStatus===s?' selected':'')+'>'+s+'</option>').join('')+'</select>')+
+      field('Invoice Date', '<input type="date" class="input" id="if-date" value="'+(inv.invoiceDate||'').slice(0,10)+'"/>')+
+      field('Due Date', '<input type="date" class="input" id="if-due" value="'+(inv.dueDate||'').slice(0,10)+'"/>')+
+    '</div></div>';
+}
+function clientInfoCard(inv){
+  const clientOptions = '<option value="">— Enter manually —</option>' + STATE.clients.map(c=>'<option value="'+c.id+'"'+(inv.clientId===c.id?' selected':'')+'>'+escapeHtml(c.name)+'</option>').join('');
+  return '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Client Information</h3>'+
+    field('Select Existing Client', '<select class="input" id="if-client-select" onchange="applyInvoiceClient(this.value)">'+clientOptions+'</select>')+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px;">'+
+      field('Client Name *', '<input class="input" id="if-name" value="'+escapeHtml(inv.clientName||'')+'"/>')+
+      field('Company', '<input class="input" id="if-company" value="'+escapeHtml(inv.company||'')+'"/>')+
+      field('Phone *', '<input class="input" id="if-phone" type="tel" inputmode="tel" value="'+escapeHtml(inv.phone||'')+'"/>')+
+      field('Email *', '<input class="input" id="if-email" type="email" value="'+escapeHtml(inv.email||'')+'"/>')+
+      field('GST Number (Optional)', '<input class="input" id="if-gst" value="'+escapeHtml(inv.gstNumber||'')+'"/>')+
+      field('Address', '<input class="input" id="if-address" value="'+escapeHtml(inv.address||'')+'"/>')+
+    '</div></div>';
+}
+function itemsCard(inv){
+  return '<div class="neu-card" style="padding:24px;">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><h3 style="margin:0;font-weight:700;font-size:15px;">Items</h3><button class="btn-ghost" onclick="addInvoiceItem()">'+icon('plus','width:14px;height:14px;')+' Add Item</button></div>'+
+    '<div id="invoice-items-list">'+invoiceItemsRows(inv)+'</div>'+
+  '</div>';
+}
+function invoiceItemsRows(inv){
+  return inv.items.map(item=>
+    '<div class="neu-inset item-row">'+
+      '<div class="item-fields">'+
+        '<div class="if-cell if-service"><label class="if-label">Service</label><input class="input input-compact" value="'+escapeHtml(item.serviceName)+'" oninput=\'updateInvoiceItem("'+item.id+'","serviceName",this.value)\' placeholder="Logo design"/></div>'+
+        '<div class="if-cell"><label class="if-label">Qty</label><input type="number" class="input input-compact" value="'+item.quantity+'" oninput=\'updateInvoiceItem("'+item.id+'","quantity",this.value)\'/></div>'+
+        '<div class="if-cell"><label class="if-label">Price</label><input type="number" class="input input-compact" value="'+item.price+'" oninput=\'updateInvoiceItem("'+item.id+'","price",this.value)\'/></div>'+
+        '<div class="if-cell"><label class="if-label">Tax %</label><input type="number" class="input input-compact" value="'+item.taxPercent+'" oninput=\'updateInvoiceItem("'+item.id+'","taxPercent",this.value)\'/></div>'+
+        '<div class="if-cell"><label class="if-label">Discount %</label><div style="display:flex;gap:6px;align-items:center;"><input type="number" class="input input-compact" style="flex:1;min-width:0;" value="'+item.discountPercent+'" oninput=\'updateInvoiceItem("'+item.id+'","discountPercent",this.value)\'/><button class="item-remove-btn" onclick=\'removeInvoiceItem("'+item.id+'")\' title="Remove item">'+icon('trash','width:15px;height:15px;')+'</button></div></div>'+
+      '</div>'+
+      '<input class="input" style="margin-top:12px;" placeholder="Description (optional)" value="'+escapeHtml(item.description||'')+'" oninput=\'updateInvoiceItem("'+item.id+'","description",this.value)\'/>'+
+    '</div>'
+  ).join('');
+}
+function invoiceSummaryHtml(inv){
+  const t = calcInvoiceTotals(inv);
+  const cur = STATE.settings.currency;
+  return '<div class="neu-card" style="padding:24px;position:sticky;top:90px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Summary</h3>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:8px;"><span>Subtotal</span><span>'+fmtMoney(t.subtotal,cur)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:8px;"><span>Discount</span><span>- '+fmtMoney(t.totalDiscount,cur)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:8px;"><span>Tax</span><span>'+fmtMoney(t.totalTax,cur)+'</span></div>'+
+    '<div style="border-top:1px solid var(--border);margin:8px 0;"></div>'+
+    '<div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:12px;"><span>Grand Total</span><span>'+fmtMoney(t.grandTotal,cur)+'</span></div>'+
+    field('Amount Paid', '<input type="number" class="input" id="if-paid" value="'+(inv.amountPaid||0)+'" oninput="updateInvoicePaid(this.value)"/>')+
+    '<div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;color:var(--primary);margin-bottom:8px;"><span>Remaining</span><span id="if-remaining">'+fmtMoney(t.remaining,cur)+'</span></div>'+
+    '<div id="if-credit-wrap" style="display:flex;justify-content:space-between;font-weight:700;font-size:13px;color:#16a34a;margin-bottom:20px;'+(t.credit>0?'':'display:none;')+'"><span>Credit balance (overpaid)</span><span id="if-credit">'+fmtMoney(t.credit,cur)+'</span></div>'+
+    '<div style="display:flex;flex-direction:column;gap:10px;">'+
+      '<button class="btn-primary" onclick="saveInvoiceFromEditor()">Save Invoice</button>'+
+      '<button class="btn-ghost" onclick="downloadInvoicePDF(window._editingInvoice)">'+icon('download','width:15px;height:15px;')+' Download PDF</button>'+
+      '<button class="btn-ghost" onclick="printInvoicePDF(window._editingInvoice)">'+icon('print','width:15px;height:15px;')+' Print Invoice</button>'+
+      '<button class="btn-ghost" onclick="shareInvoicePDF(window._editingInvoice)">'+icon('share','width:15px;height:15px;')+' Share PDF</button>'+
+    '</div></div>';
+}
+function afterRenderInvoiceEditor(invoiceId){
+  document.getElementById('invoice-summary-wrap').innerHTML = invoiceSummaryHtml(window._editingInvoice);
+  ['if-number','if-date','if-due','if-status'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){ el.oninput = () => syncInvoiceDetailsFromForm(); el.onchange = () => syncInvoiceDetailsFromForm(); }
+  });
+  ['if-name','if-company','if-phone','if-email','if-gst','if-address','if-notes'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.oninput = () => syncInvoiceClientFromForm();
+  });
+}
+function syncInvoiceDetailsFromForm(){
+  const inv = window._editingInvoice;
+  inv.invoiceNumber = document.getElementById('if-number').value;
+  inv.invoiceDate = document.getElementById('if-date').value;
+  inv.dueDate = document.getElementById('if-due').value;
+  inv.paymentStatus = document.getElementById('if-status').value;
+}
+function syncInvoiceClientFromForm(){
+  const inv = window._editingInvoice;
+  inv.clientName = document.getElementById('if-name').value;
+  inv.company = document.getElementById('if-company').value;
+  inv.phone = document.getElementById('if-phone').value;
+  inv.email = document.getElementById('if-email').value;
+  inv.gstNumber = document.getElementById('if-gst').value;
+  inv.address = document.getElementById('if-address').value;
+  inv.notes = document.getElementById('if-notes') ? document.getElementById('if-notes').value : inv.notes;
+}
+function applyInvoiceClient(clientId){
+  const inv = window._editingInvoice;
+  const c = STATE.clients.find(x=>x.id===clientId);
+  if(c){
+    Object.assign(inv, { clientId:c.id, clientName:c.name, company:c.company||'', phone:c.phone||'', email:c.email||'', address:c.address||'', gstNumber:c.gstNumber||'' });
+  } else {
+    inv.clientId = undefined;
+  }
+  // Patch the existing form fields in place (avoids discarding unsaved item/notes edits)
+  const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || ''; };
+  setVal('if-name', inv.clientName);
+  setVal('if-company', inv.company);
+  setVal('if-phone', inv.phone);
+  setVal('if-email', inv.email);
+  setVal('if-gst', inv.gstNumber);
+  setVal('if-address', inv.address);
+}
+function addInvoiceItem(){
+  window._editingInvoice.items.push(newInvoiceItem());
+  document.getElementById('invoice-items-list').innerHTML = invoiceItemsRows(window._editingInvoice);
+  refreshInvoiceSummary();
+}
+function removeInvoiceItem(itemId){
+  window._editingInvoice.items = window._editingInvoice.items.filter(i=>i.id!==itemId);
+  document.getElementById('invoice-items-list').innerHTML = invoiceItemsRows(window._editingInvoice);
+  refreshInvoiceSummary();
+}
+function updateInvoiceItem(itemId, field, value){
+  const item = window._editingInvoice.items.find(i=>i.id===itemId);
+  if(!item) return;
+  item[field] = (field==='serviceName'||field==='description') ? value : Number(value);
+  refreshInvoiceSummary();
+}
+function updateInvoicePaid(value){
+  window._editingInvoice.amountPaid = Number(value)||0;
+  const t = calcInvoiceTotals(window._editingInvoice);
+  const cur = STATE.settings.currency;
+  const el = document.getElementById('if-remaining');
+  if(el) el.textContent = fmtMoney(t.remaining, cur);
+  const creditWrap = document.getElementById('if-credit-wrap');
+  const creditEl = document.getElementById('if-credit');
+  if(creditWrap) creditWrap.style.display = t.credit>0 ? 'flex' : 'none';
+  if(creditEl) creditEl.textContent = fmtMoney(t.credit, cur);
+}
+function refreshInvoiceSummary(){
+  const wrap = document.getElementById('invoice-summary-wrap');
+  if(wrap) wrap.innerHTML = invoiceSummaryHtml(window._editingInvoice);
+}
+async function saveInvoiceFromEditor(){
+  syncInvoiceDetailsFromForm();
+  syncInvoiceClientFromForm();
+  const inv = window._editingInvoice;
+  if(!inv.clientName || !inv.clientName.trim()){ showToast('Client name is required'); document.getElementById('if-name').focus(); return; }
+  const phone = (inv.phone||'').trim();
+  const email = (inv.email||'').trim();
+  if(!phone){ showToast('Client phone number is required'); markFieldInvalid(document.getElementById('if-phone')); return; }
+  if(!isValidPhone(phone)){ showToast('Enter a valid client phone number'); markFieldInvalid(document.getElementById('if-phone')); return; }
+  if(!email){ showToast('Client email is required'); markFieldInvalid(document.getElementById('if-email')); return; }
+  if(!isValidEmail(email)){ showToast('Enter a valid client email address'); markFieldInvalid(document.getElementById('if-email')); return; }
+  if(!inv.items || inv.items.length===0){ showToast('Add at least one item to the invoice'); return; }
+  for(const item of inv.items){
+    if(!item.serviceName || !item.serviceName.trim()){ showToast('Every item needs a service name'); return; }
+    if(!(Number(item.quantity)>0)){ showToast('Item quantity must be greater than 0'); return; }
+    if(Number(item.price)<0){ showToast('Item price cannot be negative'); return; }
+    if(Number(item.taxPercent)<0){ showToast('Item tax percent cannot be negative'); return; }
+    if(Number(item.discountPercent)<0 || Number(item.discountPercent)>100){ showToast('Item discount must be between 0 and 100%'); return; }
+  }
+  const totals = calcInvoiceTotals(inv);
+  let status = inv.paymentStatus;
+  if(inv.amountPaid >= totals.grandTotal && totals.grandTotal>0) status='Paid';
+  else if(isPastDate(inv.dueDate) && inv.amountPaid < totals.grandTotal && status!=='Paid') status='Overdue';
+  inv.paymentStatus = status;
+  await saveInvoiceRec(inv);
+  showToast('Invoice saved');
+  location.hash = '#/billing';
+}
+
+// ===================== Invoice PDF (jsPDF + autotable) =====================
+function imgFormatFor(el){
+  const src = (el && el.getAttribute('src')) || '';
+  if(src.startsWith('data:image/jpeg') || src.startsWith('data:image/jpg') || /\.jpe?g$/i.test(src)) return 'JPEG';
+  if(src.startsWith('data:image/webp') || /\.webp$/i.test(src)) return 'WEBP';
+  return 'PNG';
+}
+function generateInvoicePDF(invoice){
+  const settings = STATE.settings;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 40;
+  const currency = settings.currency || 'INR';
+
+  // Watermark — faint logo centered behind everything, drawn first
+  try{
+    const pageHeightForWm = doc.internal.pageSize.getHeight();
+    const customLogo = document.getElementById('pdf-logo-custom');
+    const hasCustom = customLogo && customLogo.getAttribute('src') && customLogo.complete && customLogo.naturalWidth>0;
+    const wmEl = hasCustom ? customLogo : document.getElementById('pdf-logo-lockup');
+    if(wmEl && wmEl.complete && wmEl.naturalWidth>0){
+      const wmW = pageWidth * 0.5;
+      const wmH = wmW * (wmEl.naturalHeight / wmEl.naturalWidth);
+      doc.saveGraphicsState();
+      doc.setGState(new doc.GState({ opacity:0.055 }));
+      doc.addImage(wmEl, imgFormatFor(wmEl), (pageWidth-wmW)/2, (pageHeightForWm-wmH)/2, wmW, wmH);
+      doc.restoreGraphicsState();
+    }
+  }catch(e){ console.error('Invoice watermark render failed', e); }
+
+  doc.setFillColor(27,30,43);
+  doc.rect(0,0,pageWidth,90,'F');
+  doc.setTextColor(255,255,255);
+
+  // Header logo, to the left of the business name
+  let nameX = margin;
+  try{
+    const customLogo = document.getElementById('pdf-logo-custom');
+    const hasCustom = customLogo && customLogo.getAttribute('src') && customLogo.complete && customLogo.naturalWidth>0;
+    const hdEl = hasCustom ? customLogo : document.getElementById('pdf-logo-mark');
+    if(hdEl && hdEl.complete && hdEl.naturalWidth>0){
+      const logoH = 44;
+      const logoW = logoH * (hdEl.naturalWidth / hdEl.naturalHeight);
+      doc.addImage(hdEl, imgFormatFor(hdEl), margin, 23, logoW, logoH);
+      nameX = margin + logoW + 14;
+    }
+  }catch(e){ console.error('Invoice header logo render failed', e); }
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(20);
+  doc.text(settings.businessName || 'Sabyx Labs', nameX, 40);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text('Professional Business Solutions', nameX, 58);
+  doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text('INVOICE', pageWidth-margin, 40, { align:'right' });
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text('# '+invoice.invoiceNumber, pageWidth-margin, 58, { align:'right' });
+
+  let y = 120;
+  doc.setTextColor(30,33,45); doc.setFontSize(10); doc.setFont('helvetica','bold');
+  doc.text('Invoice Date', margin, y);
+  doc.text('Due Date', margin+160, y);
+  doc.text('Payment Status', margin+320, y);
+  doc.setFont('helvetica','normal');
+  doc.text(invoice.invoiceDate ? parseDateOnly(invoice.invoiceDate).toLocaleDateString() : '', margin, y+16);
+  doc.text(invoice.dueDate ? parseDateOnly(invoice.dueDate).toLocaleDateString() : '', margin+160, y+16);
+  const statusColor = { Paid:[34,158,94], Pending:[214,158,46], Overdue:[214,68,68] }[invoice.paymentStatus] || [100,100,100];
+  doc.setTextColor.apply(doc, statusColor);
+  doc.setFont('helvetica','bold');
+  doc.text(invoice.paymentStatus, margin+320, y+16);
+  doc.setTextColor(30,33,45);
+
+  y += 46;
+  doc.setDrawColor(225,228,235);
+  doc.line(margin,y,pageWidth-margin,y);
+  y += 24;
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text('Billed To', margin, y);
+  y += 16;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  const clientLines = [invoice.clientName, invoice.company, invoice.address,
+    invoice.phone ? 'Phone: '+invoice.phone : null,
+    invoice.email ? 'Email: '+invoice.email : null,
+    invoice.gstNumber ? 'GSTIN: '+invoice.gstNumber : null].filter(Boolean);
+  clientLines.forEach((line,idx)=>doc.text(String(line), margin, y+idx*14));
+  y += clientLines.length*14 + 20;
+
+  const rows = invoice.items.map(item=>{
+    const c = calcItem(item);
+    return [ item.serviceName + (item.description? '\n'+item.description : ''), String(item.quantity), fmtMoney(item.price,currency), item.discountPercent+'%', item.taxPercent+'%', fmtMoney(c.total,currency) ];
+  });
+
+  doc.autoTable({
+    startY:y, head:[['Service','Qty','Price','Discount','Tax','Total']], body: rows, theme:'grid',
+    headStyles:{ fillColor:[91,140,255], textColor:255, fontStyle:'bold' },
+    styles:{ fontSize:9, cellPadding:8, textColor:[40,44,58] },
+    columnStyles:{0:{cellWidth:190},1:{halign:'center'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'}},
+    margin:{ left:margin, right:margin }
+  });
+
+  const finalY = doc.lastAutoTable.finalY + 20;
+  const totals = calcInvoiceTotals(invoice);
+  const totalsX = pageWidth - margin - 200;
+  let ty = finalY;
+  function totalLine(label, value, bold){
+    doc.setFont('helvetica', bold?'bold':'normal'); doc.setFontSize(bold?12:10);
+    doc.text(label, totalsX, ty); doc.text(value, pageWidth-margin, ty, { align:'right' });
+  }
+  totalLine('Subtotal', fmtMoney(totals.subtotal,currency)); ty+=18;
+  totalLine('Discount', '- '+fmtMoney(totals.totalDiscount,currency)); ty+=18;
+  totalLine('Tax', fmtMoney(totals.totalTax,currency)); ty+=10;
+  doc.setDrawColor(225,228,235); doc.line(totalsX,ty,pageWidth-margin,ty); ty+=18;
+  totalLine('Grand Total', fmtMoney(totals.grandTotal,currency), true); ty+=20;
+  totalLine('Amount Paid', fmtMoney(invoice.amountPaid||0,currency)); ty+=18;
+  totalLine('Balance Due', fmtMoney(totals.remaining,currency), true); ty+=20;
+  if(totals.credit>0){ totalLine('Credit Balance', fmtMoney(totals.credit,currency), true); ty+=20; }
+  ty+=10;
+
+  if(invoice.notes){
+    doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('Notes', margin, ty);
+    doc.setFont('helvetica','normal');
+    const split = doc.splitTextToSize(invoice.notes, pageWidth-margin*2);
+    doc.text(split, margin, ty+16);
+  }
+
+  const pageHeight = doc.internal.pageSize.getHeight();
+  doc.setDrawColor(225,228,235);
+  doc.line(margin, pageHeight-70, pageWidth-margin, pageHeight-70);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(91,140,255);
+  doc.text('Thank you for choosing Sabyx Labs.', margin, pageHeight-48);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,145,160);
+  doc.text('Designed & Developed by Sabyx Labs', margin, pageHeight-32);
+
+  return doc;
+}
+// If a custom logo was just uploaded, its <img src> may still be loading
+// asynchronously the instant someone clicks Download/Print/Share. Without
+// waiting, generateInvoicePDF's `.complete` check fails and it silently falls
+// back to the default mark instead of the logo that was just set.
+function waitForCustomLogo(timeoutMs){
+  return new Promise(resolve=>{
+    const el = document.getElementById('pdf-logo-custom');
+    if(!el || !el.getAttribute('src') || (el.complete && el.naturalWidth>0)) return resolve();
+    const done = () => resolve();
+    el.addEventListener('load', done, { once:true });
+    el.addEventListener('error', done, { once:true });
+    setTimeout(done, timeoutMs||1500);
+  });
+}
+async function downloadInvoicePDF(invoice){
+  if(!window.jspdf){ showToast('PDF library is still loading — try again in a moment'); return; }
+  await waitForCustomLogo();
+  generateInvoicePDF(invoice).save(invoice.invoiceNumber+'.pdf');
+}
+async function printInvoicePDF(invoice){
+  if(!window.jspdf){ showToast('PDF library is still loading — try again in a moment'); return; }
+  await waitForCustomLogo();
+  const doc = generateInvoicePDF(invoice); doc.autoPrint(); window.open(doc.output('bloburl'),'_blank');
+}
+async function shareInvoicePDF(invoice){
+  if(!window.jspdf){ showToast('PDF library is still loading — try again in a moment'); return; }
+  await waitForCustomLogo();
+  const doc = generateInvoicePDF(invoice);
+  const blob = doc.output('blob');
+  const file = new File([blob], invoice.invoiceNumber+'.pdf', { type:'application/pdf' });
+  if(navigator.share && navigator.canShare && navigator.canShare({ files:[file] })){
+    try{ await navigator.share({ files:[file], title: invoice.invoiceNumber, text:'Invoice from Sabyx Labs' }); }catch(e){}
+  } else { downloadInvoicePDF(invoice); }
+}
+
+// ===================== Calendar =====================
+let calendarCursor = new Date();
+let calendarSelectedDay = null;
+function getDerivedEvents(){
+  const fromProjects = STATE.projects.filter(p=>p.deadline).map(p=>({ id:'proj-'+p.id, title:'Deadline: '+p.name, type:'Deadline', date:p.deadline }));
+  const fromInvoices = STATE.invoices.filter(i=>i.paymentStatus!=='Paid').map(i=>({ id:'inv-'+i.id, title:'Invoice Due: '+i.invoiceNumber, type:'Invoice Due', date:i.dueDate }));
+  const fromTasks = STATE.tasks.filter(t=>t.dueDate && !t.completed).map(t=>({ id:'task-'+t.id, title:'Task: '+t.title, type:'Task', date:t.dueDate }));
+  return [...STATE.calendarEvents, ...fromProjects, ...fromInvoices, ...fromTasks];
+}
+function renderCalendar(){
+  const events = getDerivedEvents();
+  const monthStart = startOfMonth(calendarCursor);
+  const gridStart = new Date(monthStart); gridStart.setDate(gridStart.getDate() - gridStart.getDay());
+  const days = [];
+  for(let i=0;i<42;i++){ const d = new Date(gridStart); d.setDate(gridStart.getDate()+i); days.push(d); }
+
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const headerCells = dayNames.map(d=>'<div style="text-align:center;font-size:11px;font-weight:600;color:var(--text-dim);padding:4px 0;">'+d+'</div>').join('');
+
+  const cells = days.map(day=>{
+    const inMonth = isSameMonth(day, calendarCursor);
+    const today = isSameDay(day, new Date());
+    const dayEvents = events.filter(e=>e.date && isSameDay(parseDateOnly(e.date), day));
+    const evtHtml = dayEvents.slice(0,2).map(e=>{
+      const bg = e.type==='Meeting'?'#5B8CFF22':e.type==='Deadline'?'#EF444422':e.type==='Invoice Due'?'#F59E0B22':'#7C6CFF22';
+      return '<div class="cal-evt" style="background:'+bg+';">'+escapeHtml(e.title)+'</div>';
+    }).join('') + (dayEvents.length>2 ? '<div style="font-size:10px;color:var(--text-dim);margin-top:2px;">+'+(dayEvents.length-2)+' more</div>' : '');
+    return '<div class="cal-cell neu-inset" style="'+(inMonth?'':'opacity:.3;')+(today?'outline:2px solid var(--primary);':'')+'" onclick="selectCalendarDay(\''+day.toISOString()+'\')">'+
+      '<p style="margin:0;font-size:12px;font-weight:600;'+(today?'color:var(--primary);':'color:var(--text-dim);')+'">'+day.getDate()+'</p>'+evtHtml+'</div>';
+  }).join('');
+
+  return pageHeader('Calendar', 'Meetings, deadlines, invoice due dates and tasks in one view.')+
+    '<div class="neu-card" style="padding:18px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;">'+
+      '<button class="neu-btn" style="padding:9px;" onclick="calendarCursor=addMonths(calendarCursor,-1);route();">'+icon('chevronL')+'</button>'+
+      '<h3 style="margin:0;font-weight:700;font-size:15px;">'+['January','February','March','April','May','June','July','August','September','October','November','December'][calendarCursor.getMonth()]+' '+calendarCursor.getFullYear()+'</h3>'+
+      '<button class="neu-btn" style="padding:9px;" onclick="calendarCursor=addMonths(calendarCursor,1);route();">'+icon('chevronR')+'</button>'+
+    '</div>'+
+    '<div class="neu-card" style="padding:16px;">'+'<div class="cal-grid" style="margin-bottom:6px;">'+headerCells+'</div>'+'<div class="cal-grid">'+cells+'</div></div>'+
+    '<div id="calendar-day-modal-anchor"></div>';
+}
+function afterRenderCalendar(){}
+function selectCalendarDay(isoStr){
+  calendarSelectedDay = new Date(isoStr);
+  const events = getDerivedEvents().filter(e=>e.date && isSameDay(parseDateOnly(e.date), calendarSelectedDay));
+  const evtHtml = events.length===0 ? '<p style="font-size:13px;color:var(--text-dim);">No events this day.</p>' :
+    events.map(e=>'<div class="neu-inset" style="padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-size:13.5px;">'+escapeHtml(e.title)+'</span>'+badge(e.type, EVT_TONE[e.type])+'</div>').join('');
+  const body = '<div style="max-height:200px;overflow-y:auto;margin-bottom:16px;">'+evtHtml+'</div>'+
+    '<div style="border-top:1px solid var(--border);padding-top:16px;"><p class="label" style="margin-bottom:12px;">Add a meeting or reminder</p>'+
+    field('Title', '<input class="input" id="ce-title" placeholder="Client call"/>')+
+    field('Type', '<select class="input" id="ce-type"><option>Meeting</option><option>Deadline</option><option>Task</option></select>')+
+    '<button class="btn-primary" style="width:100%;" onclick="addCalendarEvent()">'+icon('plus','stroke:#fff;')+' Add Event</button></div>';
+  openModal(calendarSelectedDay.toDateString().replace(/^\S+\s/,'').replace(/(\d+) (\w+) (\d+)/,'$2 $1, $3'), body);
+}
+async function addCalendarEvent(){
+  const title = document.getElementById('ce-title').value.trim();
+  if(!title || !calendarSelectedDay) return;
+  await saveCalendarEventRec({ id: uid(), title, type: document.getElementById('ce-type').value, date: calendarSelectedDay.toISOString() });
+  closeModal();
+  route();
+}
+
+// ===================== Documents =====================
+let docSearchTerm = '';
+let docCategoryFilter = 'All';
+const DOC_CATEGORIES = ['PDF','Contract','Image','Note'];
+const DOC_ICONS = { PDF:'fileText', Contract:'file', Image:'image', Note:'note' };
+function renderDocuments(){
+  const list = STATE.documents.filter(d=> (docCategoryFilter==='All'||d.category===docCategoryFilter) && d.name.toLowerCase().includes(docSearchTerm.toLowerCase()));
+  const chips = ['All',...DOC_CATEGORIES].map(c=>'<button class="chip'+(docCategoryFilter===c?' active':'')+'" onclick="docCategoryFilter=\''+c+'\';route();">'+c+'</button>').join('');
+  const cards = list.length===0 ? emptyState('No documents found','Upload contracts, invoices, images or notes for safekeeping.','<button class="btn-primary" style="margin-top:8px;" onclick="openDocUploadModal()">Upload File</button>') :
+    '<div class="grid" style="grid-template-columns:repeat(2,1fr);">'+list.map(d=>
+      '<div class="neu-card" style="padding:16px;cursor:pointer;" onclick=\'previewDoc("'+d.id+'")\'>'+
+        '<div style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:10px;background:linear-gradient(135deg,var(--primary),var(--secondary));">'+icon(DOC_ICONS[d.category],'stroke:#fff;width:18px;height:18px;')+'</div>'+
+        '<p style="font-size:13.5px;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(d.name)+'</p>'+
+        '<p style="font-size:11px;color:var(--text-dim);margin:4px 0 8px;">'+fmtDate(d.addedAt)+'</p>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;">'+badge(d.category,'blue')+
+        '<button onclick=\'event.stopPropagation();confirmDialog("Delete document?","This file will be permanently removed.",()=>deleteDocumentRec("'+d.id+'").then(route))\' style="color:var(--text-dim);">'+icon('trash','width:14px;height:14px;')+'</button></div>'+
+      '</div>'
+    ).join('')+'</div>';
+  return pageHeader('Documents', STATE.documents.length+' file'+(STATE.documents.length===1?'':'s')+' stored locally', '<button class="btn-primary" onclick="openDocUploadModal()">'+icon('upload','stroke:#fff;')+' Upload</button>')+
+    '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:22px;">'+
+      '<div class="neu-inset" style="display:flex;align-items:center;gap:10px;padding:12px 16px;max-width:280px;flex:1;">'+icon('search','color:var(--text-dim);')+'<input id="doc-search" class="input" style="background:transparent;box-shadow:none;padding:0;" placeholder="Search documents..." value="'+escapeHtml(docSearchTerm)+'"/></div>'+
+      '<div class="chip-row" style="margin:0;">'+chips+'</div>'+
+    '</div>'+cards;
+}
+function afterRenderDocuments(){
+  const search = document.getElementById('doc-search');
+  if(search) search.oninput = debounce(e=>{ docSearchTerm=e.target.value; const pos = e.target.selectionStart; document.getElementById('page').innerHTML = renderDocuments(); afterRenderDocuments(); refocusInput('doc-search', pos); }, 200);
+}
+function openDocUploadModal(){
+  window._pendingDoc = { category:'PDF' };
+  const body = field('File', fileUploadField('doc-file', { hint:'PDF, image, or any document type' }))+
+    field('Category', '<select class="input" id="doc-category">'+DOC_CATEGORIES.map(c=>'<option>'+c+'</option>').join('')+'</select>')+
+    field('Note (optional)', '<textarea class="input" id="doc-note" rows="2"></textarea>');
+  openModal('Upload Document', body, '<button class="btn-ghost" onclick="closeModal()">Cancel</button><button class="btn-primary" id="doc-save">Save Document</button>');
+  document.getElementById('doc-category').onchange = e => window._pendingDoc.category = e.target.value;
+  window['_onFileUpload_doc-file'] = async (file) => {
+    if(!file){ window._pendingDoc = { category: window._pendingDoc.category }; return; }
+    const dataUrl = await readFileAsDataUrl(file);
+    window._pendingDoc = Object.assign({}, window._pendingDoc, { name:file.name, mimeType:file.type, size:file.size, dataUrl });
+  };
+  setupFileDropzone('doc-file');
+  document.getElementById('doc-save').onclick = async () => {
+    if(!window._pendingDoc.dataUrl){ showToast('Please choose a file'); return; }
+    const note = document.getElementById('doc-note').value.trim();
+    const category = document.getElementById('doc-category').value;
+    await saveDocumentRec(Object.assign({}, window._pendingDoc, { id: uid(), category, note, addedAt: nowISO() }));
+    closeModal(); route(); showToast('Document saved');
+  };
+}
+function previewDoc(id){
+  const d = STATE.documents.find(x=>x.id===id);
+  if(!d) return;
+  let body;
+  if(d.mimeType && d.mimeType.startsWith('image/')) body = '<img src="'+d.dataUrl+'" style="max-height:60vh;max-width:100%;display:block;margin:0 auto;border-radius:16px;"/>';
+  else if(d.mimeType==='application/pdf') body = '<iframe src="'+d.dataUrl+'" style="width:100%;height:60vh;border:none;border-radius:16px;"></iframe>';
+  else body = '<p style="font-size:13px;color:var(--text-dim);">Preview not available for this file type. <a href="'+d.dataUrl+'" download="'+escapeHtml(d.name)+'" style="color:var(--primary);text-decoration:underline;">Download instead</a>.</p>';
+  openModal(d.name, body, null, { wide:true });
+}
+
+// ===================== Analytics =====================
+function renderAnalytics(){
+  return pageHeader('Analytics', 'Business performance at a glance.')+
+    '<div id="analytics-stats" class="grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:24px;"></div>'+
+    '<div class="grid-half">'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Revenue vs Expenses</h3><div style="height:250px;"><canvas id="chart-rev-exp"></canvas></div></div>'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Client Growth</h3><div style="height:250px;"><canvas id="chart-client-growth"></canvas></div></div>'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Monthly Growth %</h3><div style="height:250px;"><canvas id="chart-growth-pct"></canvas></div></div>'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Projects by Status</h3><div style="height:250px;display:flex;align-items:center;justify-content:center;"><canvas id="chart-proj-status"></canvas></div></div>'+
+    '</div>';
+}
+function afterRenderAnalytics(){
+  const cur = STATE.settings.currency;
+  const months = Array.from({length:6},(_,i)=>addMonths(new Date(), i-5));
+  const labels = months.map(m=>monthShort(m));
+  const revenueByMonth = months.map(m=>STATE.invoices.filter(i=>i.invoiceDate && ymKey(parseDateOnly(i.invoiceDate))===ymKey(m)).reduce((s,i)=>s+calcInvoiceTotals(i).grandTotal,0));
+  const expensesByMonth = revenueByMonth.map(r=>Math.round(r*0.35));
+  const clientGrowth = months.map(m=>STATE.clients.filter(c=>c.createdAt && new Date(c.createdAt)<=m).length);
+  const monthlyGrowth = revenueByMonth.map((v,i)=> i===0||revenueByMonth[i-1]===0 ? 0 : Math.round(((v-revenueByMonth[i-1])/revenueByMonth[i-1])*100));
+  const totalRevenue = STATE.invoices.reduce((s,i)=>s+calcInvoiceTotals(i).grandTotal,0);
+  const totalExpenses = Math.round(totalRevenue*0.35);
+  const pendingPayments = STATE.invoices.filter(i=>i.paymentStatus!=='Paid').reduce((s,i)=>s+calcInvoiceTotals(i).remaining,0);
+
+  document.getElementById('analytics-stats').innerHTML =
+    '<div class="neu-card" style="padding:18px;"><p style="font-size:11px;color:var(--text-dim);margin:0;">Total Revenue</p><p style="font-size:17px;font-weight:800;margin:4px 0 0;">'+fmtMoney(totalRevenue,cur)+'</p></div>'+
+    '<div class="neu-card" style="padding:18px;"><p style="font-size:11px;color:var(--text-dim);margin:0;">Est. Expenses</p><p style="font-size:17px;font-weight:800;margin:4px 0 0;">'+fmtMoney(totalExpenses,cur)+'</p></div>'+
+    '<div class="neu-card" style="padding:18px;"><p style="font-size:11px;color:var(--text-dim);margin:0;">Net Profit</p><p style="font-size:17px;font-weight:800;margin:4px 0 0;">'+fmtMoney(totalRevenue-totalExpenses,cur)+'</p></div>'+
+    '<div class="neu-card" style="padding:18px;"><p style="font-size:11px;color:var(--text-dim);margin:0;">Pending Payments</p><p style="font-size:17px;font-weight:800;margin:4px 0 0;">'+fmtMoney(pendingPayments,cur)+'</p></div>';
+
+  whenLibReady(()=>typeof Chart!=='undefined', () => {
+    if(!document.getElementById('chart-rev-exp')) return;
+    chartInstances.revExp = new Chart(document.getElementById('chart-rev-exp'), {
+      type:'bar', data:{ labels, datasets:[
+        { label:'Revenue', data:revenueByMonth, backgroundColor:'#5B8CFF', borderRadius:8 },
+        { label:'Expenses', data:expensesByMonth, backgroundColor:'#7C6CFF88', borderRadius:8 } ] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}}, scales:{y:{grid:{color:'rgba(150,150,170,0.12)'}},x:{grid:{display:false}}} }
+    });
+    chartInstances.clientGrowth = new Chart(document.getElementById('chart-client-growth'), {
+      type:'line', data:{ labels, datasets:[{ label:'Clients', data:clientGrowth, borderColor:'#7C6CFF', backgroundColor:'rgba(124,108,255,0.15)', fill:true, tension:.4 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'rgba(150,150,170,0.12)'}},x:{grid:{display:false}}} }
+    });
+    chartInstances.growthPct = new Chart(document.getElementById('chart-growth-pct'), {
+      type:'bar', data:{ labels, datasets:[{ label:'Growth %', data:monthlyGrowth, backgroundColor: monthlyGrowth.map(v=>v>=0?'#22C55E':'#EF4444'), borderRadius:8 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'rgba(150,150,170,0.12)'}},x:{grid:{display:false}}} }
+    });
+    const statuses = ['Not Started','In Progress','On Hold','Completed','Cancelled'];
+    chartInstances.projStatus = new Chart(document.getElementById('chart-proj-status'), {
+      type:'pie', data:{ labels:statuses, datasets:[{ data: statuses.map(s=>STATE.projects.filter(p=>p.status===s).length), backgroundColor:['#CBD5E1','#5B8CFF','#F59E0B','#22C55E','#EF4444'], borderWidth:0 }] },
+      options:{ plugins:{ legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}} } }
+    });
+  });
+}
+
+// ===================== Settings =====================
+function renderSettings(){
+  const s = STATE.settings;
+  return pageHeader('Settings', 'Configure your business profile, invoicing defaults and data.')+
+    '<div class="grid-half">'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Business Profile</h3>'+
+        field('Business Name', '<input class="input" id="s-business-name" value="'+escapeHtml(s.businessName||'')+'"/>')+
+        field('Owner Name', '<input class="input" id="s-owner-name" value="'+escapeHtml(s.ownerName||'')+'"/>')+
+        field('Business Logo', (s.businessLogoDataUrl? '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><img src="'+s.businessLogoDataUrl+'" style="width:48px;height:48px;border-radius:12px;object-fit:cover;"/><button type="button" class="btn-ghost" style="font-size:12px;padding:8px 14px;" onclick="removeBusinessLogo()">'+icon('trash','width:13px;height:13px;')+' Remove logo</button></div>' : '')+fileUploadField('s-logo', { accept:'image/*', hint:'PNG or JPG — square works best' }))+
+      '</div>'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Invoicing Defaults</h3>'+
+        field('Currency', '<select class="input" id="s-currency">'+['INR','USD','EUR','GBP'].map(c=>'<option'+(s.currency===c?' selected':'')+'>'+c+'</option>').join('')+'</select>')+
+        field('Default Tax Percentage', '<input type="number" class="input" id="s-tax" value="'+s.taxPercent+'"/>')+
+        field('Invoice Prefix', '<input class="input" id="s-prefix" value="'+escapeHtml(s.invoicePrefix||'')+'"/>')+
+      '</div>'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Appearance</h3>'+
+        '<div style="display:flex;gap:8px;">'+['light','dark','system'].map(m=>'<button class="chip'+((localStorage.getItem("novacrm-theme")||"system")===m?' active':'')+'" style="text-transform:capitalize;" onclick="localStorage.setItem(\'novacrm-theme\',\''+m+'\');applyTheme();route();">'+m+'</button>').join('')+'</div>'+
+      '</div>'+
+      '<div class="neu-card" style="padding:24px;"><h3 style="margin:0 0 16px;font-weight:700;font-size:15px;">Backup &amp; Restore</h3>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:10px;">'+
+          '<button class="btn-ghost" onclick="doExportData()">'+icon('download','width:15px;height:15px;')+' Export Data</button>'+
+          '<button class="btn-ghost" onclick="document.getElementById(\'s-import-file\').click()">'+icon('upload','width:15px;height:15px;')+' Import Data</button>'+
+          '<input type="file" id="s-import-file" accept=".json" style="display:none;" onchange="doImportData()"/>'+
+          '<button class="btn-ghost" style="color:#EF4444;" onclick=\'confirmDialog("Clear all data?","This permanently deletes all clients, projects, tasks, invoices and documents from this device. This cannot be undone.",doClearAllData)\'>'+icon('trash','width:15px;height:15px;')+' Clear All Data</button>'+
+        '</div>'+
+        '<p style="font-size:11.5px;color:var(--text-dim);margin:14px 0 0;">Everything is stored locally in your browser via IndexedDB. Export regularly to keep a safe backup.</p>'+
+      '</div>'+
+    '</div>'+
+    '<div style="margin-top:24px;"><button class="btn-primary" onclick="saveSettingsFromForm()">'+icon('save','stroke:#fff;')+' Save Settings</button></div>';
+}
+function afterRenderSettings(){
+  window['_onFileUpload_s-logo'] = async (file) => {
+    if(!file) return;
+    const dataUrl = await readFileAsDataUrl(file);
+    STATE.settings.businessLogoDataUrl = dataUrl;
+    await saveSettingsRec(STATE.settings);
+    route();
+  };
+  setupFileDropzone('s-logo');
+}
+async function removeBusinessLogo(){
+  STATE.settings.businessLogoDataUrl = null;
+  await saveSettingsRec(STATE.settings);
+  route();
+}
+async function saveSettingsFromForm(){
+  const updated = Object.assign({}, STATE.settings, {
+    businessName: document.getElementById('s-business-name').value.trim(),
+    ownerName: document.getElementById('s-owner-name').value.trim(),
+    currency: document.getElementById('s-currency').value,
+    taxPercent: Number(document.getElementById('s-tax').value)||0,
+    invoicePrefix: document.getElementById('s-prefix').value.trim() || 'INV'
+  });
+  await saveSettingsRec(updated);
+  showToast('Settings saved');
+}
+async function doExportData(){
+  const payload = await exportAllData();
+  const blob = new Blob([JSON.stringify(payload,null,2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'novacrm-backup-'+todayStr()+'.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup exported');
+}
+async function doImportData(){
+  const inp = document.getElementById('s-import-file');
+  const file = inp.files[0];
+  if(!file) return;
+  let payload;
+  try{
+    const text = await file.text();
+    payload = JSON.parse(text);
+  }catch(e){ showToast('Invalid backup file'); inp.value=''; return; }
+  // Importing used to silently merge with whatever was already on the device —
+  // surprising for anyone expecting "restore backup" to replace their data.
+  // Ask explicitly instead.
+  openModal('Import Backup',
+    '<p style="font-size:14px;color:var(--text-dim);margin:0 0 6px;">This backup can be merged with your current data, or used to replace it entirely. Which would you like?</p>',
+    '<button class="btn-ghost" onclick="closeModal();const f=document.getElementById(\'s-import-file\');if(f)f.value=\'\';">Cancel</button>'+
+    '<button class="neu-btn" style="padding:10px 16px;font-size:14px;font-weight:600;" id="import-merge-btn">Merge</button>'+
+    '<button class="btn-primary" style="background:#EF4444;" id="import-replace-btn">Replace All Data</button>'
+  );
+  document.getElementById('import-merge-btn').onclick = () => { closeModal(); finishImportData(payload, false); };
+  document.getElementById('import-replace-btn').onclick = () => { closeModal(); finishImportData(payload, true); };
+}
+async function finishImportData(payload, replace){
+  const inp = document.getElementById('s-import-file');
+  try{
+    if(replace) await clearAllData();
+    await importAllData(payload);
+    await loadAll();
+    showToast(replace ? 'Data replaced with backup' : 'Backup merged with your data');
+    route();
+  }catch(e){ showToast('Import failed — the backup file may be malformed'); }
+  if(inp) inp.value = '';
+}
+async function doClearAllData(){
+  await clearAllData();
+  await loadAll();
+  showToast('All data cleared');
+  route();
+}
+
+// ===================== About =====================
+function renderAbout(){
+  return pageHeader('About', 'Get to know NovaCRM and the team behind it.')+
+    '<div class="grid-2">'+
+      '<div style="display:flex;flex-direction:column;gap:18px;">'+
+        '<div class="neu-card" style="padding:32px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;">'+
+          '<div class="brand-mark" style="width:64px;height:64px;border-radius:22px;padding:8px;"><img src="mark.png" alt="Sabyx Labs"/></div>'+
+          '<div><h2 style="margin:0;font-size:22px;font-weight:800;">NovaCRM</h2><p style="margin:2px 0 0;font-size:13px;color:var(--text-dim);">Version 1.0.0</p></div>'+
+        '</div>'+
+        '<div class="neu-card" style="padding:32px;"><h3 style="margin:0 0 10px;font-weight:700;font-size:15px;">About NovaCRM</h3>'+
+          '<p style="font-size:13.5px;color:var(--text-dim);line-height:1.7;margin:0;">NovaCRM is a modern business management application developed to simplify client management, project tracking, billing, task organization, and business analytics through a clean and intuitive interface.</p></div>'+
+        '<div class="neu-card" style="padding:32px;"><h3 style="margin:0 0 10px;font-weight:700;font-size:15px;">About Sabyx Labs</h3>'+
+          '<p style="font-size:13.5px;color:var(--text-dim);line-height:1.7;margin:0;">Sabyx Labs is an independent software startup focused on building modern, minimal, and user-friendly digital products. Our mission is to create powerful yet simple applications that help individuals and businesses improve productivity through technology.</p></div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:18px;">'+
+        '<div class="neu-card" style="padding:32px;text-align:center;">'+
+          '<div style="width:80px;height:80px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--secondary));">SM</div>'+
+          '<p style="font-size:11px;color:var(--text-dim);margin:0;">Developed by</p><p style="font-weight:800;margin:4px 0 0;">Sabyasachi Mondal</p><p style="font-size:13px;color:var(--text-dim);margin:2px 0 0;">Founder of Sabyx Labs</p>'+
+        '</div>'+
+        '<div class="neu-card" style="padding:22px;text-align:center;"><p style="font-size:13.5px;color:var(--text-dim);margin:0;display:flex;align-items:center;justify-content:center;gap:6px;">Made with '+icon('heart','width:14px;height:14px;color:#EF4444;fill:#EF4444;')+' using web technologies.</p></div>'+
+        '<div class="neu-card" style="padding:22px;text-align:center;"><p style="font-size:13px;color:var(--text-dim);margin:0;">This app is made by <strong style="color:var(--text);">Sabyasachi Mondal</strong>.</p><p style="font-size:11px;color:var(--text-dim);opacity:.8;margin:8px 0 0;">&copy; '+new Date().getFullYear()+' Sabyasachi Mondal. All rights reserved.</p></div>'+
+      '</div>'+
+    '</div>';
+}
+
+// ===================== Notifications (local — due/overdue tasks, invoices, deadlines) =====================
+// No backend, no internet needed — everything here is derived from your own
+// tasks, invoices and projects, same as the Calendar. "Read" state is
+// remembered per browser via localStorage.
+const NOTIF_LEAD_DAYS = 3; // flag things due within this many days as "upcoming", not just overdue
+let notifItems = [];       // current computed list, freshest first
+let notifKnownIds = new Set(); // ids seen so far this session, to avoid re-toasting the same one
+
+function getNotifReadIds(){
+  try{ return new Set(JSON.parse(localStorage.getItem('novacrm-notif-read')||'[]')); }catch(e){ return new Set(); }
+}
+function setNotifReadIds(set){
+  try{ localStorage.setItem('novacrm-notif-read', JSON.stringify(Array.from(set))); }catch(e){}
+}
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const target = parseDateOnly(dateStr); if(!target || isNaN(target.getTime())) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  target.setHours(0,0,0,0);
+  return Math.round((target - today) / 86400000);
+}
+function computeNotifications(){
+  const items = [];
+  STATE.tasks.filter(t=>!t.completed && t.dueDate).forEach(t=>{
+    const d = daysUntil(t.dueDate);
+    if(d===null || d>NOTIF_LEAD_DAYS) return;
+    items.push({ id:'task-'+t.id, kind: d<0?'overdue':'due', category:'Task', title:t.title||'Untitled task',
+      subtitle: d<0 ? 'Overdue by '+Math.abs(d)+' day'+(Math.abs(d)===1?'':'s') : (d===0?'Due today':'Due in '+d+' day'+(d===1?'':'s')),
+      date:t.dueDate, hash:'#/tasks' });
+  });
+  STATE.invoices.filter(i=>i.paymentStatus!=='Paid' && i.dueDate).forEach(i=>{
+    const d = daysUntil(i.dueDate);
+    if(d===null || d>NOTIF_LEAD_DAYS) return;
+    items.push({ id:'inv-'+i.id, kind: d<0?'overdue':'due', category:'Payment', title:i.invoiceNumber+' — '+(i.clientName||'Client'),
+      subtitle: d<0 ? 'Payment overdue by '+Math.abs(d)+' day'+(Math.abs(d)===1?'':'s') : (d===0?'Payment due today':'Payment due in '+d+' day'+(d===1?'':'s')),
+      date:i.dueDate, hash:'#/billing/'+i.id });
+  });
+  STATE.projects.filter(p=>p.deadline && p.status!=='Completed' && p.status!=='Cancelled').forEach(p=>{
+    const d = daysUntil(p.deadline);
+    if(d===null || d>NOTIF_LEAD_DAYS) return;
+    items.push({ id:'proj-'+p.id, kind: d<0?'overdue':'due', category:'Project', title:p.name||'Untitled project',
+      subtitle: d<0 ? 'Deadline passed '+Math.abs(d)+' day'+(Math.abs(d)===1?'':'s')+' ago' : (d===0?'Deadline today':'Deadline in '+d+' day'+(d===1?'':'s')),
+      date:p.deadline, hash:'#/projects' });
+  });
+  // Overdue first, then soonest-due; stable enough without a full comparator library.
+  items.sort((a,b)=>{
+    if((a.kind==='overdue')!==(b.kind==='overdue')) return a.kind==='overdue' ? -1 : 1;
+    return new Date(a.date) - new Date(b.date);
+  });
+  return items;
+}
+function initNotifications(){
+  refreshNotifications();
+  setInterval(refreshNotifications, 60000); // catches day-rollovers / newly-overdue items while the app sits open
+}
+function refreshNotifications(){
+  const fresh = computeNotifications();
+  const readIds = getNotifReadIds();
+  const freshIds = new Set(fresh.map(i=>i.id));
+  // Toast only for genuinely new items this session (not on first load).
+  if(notifKnownIds.size>0){
+    fresh.forEach(item=>{ if(!notifKnownIds.has(item.id) && !readIds.has(item.id)) showToast((item.kind==='overdue'?'Overdue: ':'Due soon: ')+item.title); });
+  }
+  notifKnownIds = freshIds;
+  notifItems = fresh;
+  renderNotifBadge();
+  const panel = document.getElementById('notif-panel');
+  if(panel && panel.classList.contains('open')) renderNotifPanel();
+}
+function renderNotifBadge(){
+  const readIds = getNotifReadIds();
+  const unread = notifItems.filter(i=>!readIds.has(i.id)).length;
+  const badge = document.getElementById('notif-badge');
+  if(!badge) return;
+  badge.textContent = unread>99 ? '99+' : String(unread);
+  badge.classList.toggle('show', unread>0);
+}
+function toggleNotifPanel(){
+  const panel = document.getElementById('notif-panel');
+  const willOpen = !panel.classList.contains('open');
+  if(willOpen) positionNotifPanel();
+  panel.classList.toggle('open', willOpen);
+  if(willOpen) renderNotifPanel();
+}
+function positionNotifPanel(){
+  const bell = document.getElementById('notif-bell');
+  const panel = document.getElementById('notif-panel');
+  if(!bell || !panel) return;
+  const rect = bell.getBoundingClientRect();
+  const margin = 8;
+  const panelWidth = Math.min(340, window.innerWidth - margin*2);
+  let left = rect.right - panelWidth; // align panel's right edge with the bell's right edge
+  left = Math.max(margin, Math.min(left, window.innerWidth - panelWidth - margin));
+  panel.style.width = panelWidth + 'px';
+  panel.style.left = left + 'px';
+  panel.style.top = (rect.bottom + 10) + 'px';
+}
+window.addEventListener('resize', ()=>{ const p=document.getElementById('notif-panel'); if(p && p.classList.contains('open')) positionNotifPanel(); });
+document.addEventListener('click', (e)=>{
+  const wrap = document.getElementById('notif-wrap');
+  if(wrap && !wrap.contains(e.target)) document.getElementById('notif-panel').classList.remove('open');
+});
+function renderNotifPanel(){
+  const panel = document.getElementById('notif-panel');
+  const readIds = getNotifReadIds();
+  if(notifItems.length===0){
+    panel.innerHTML = '<div style="padding:16px;font-size:12.5px;color:var(--text-dim);">You\'re all caught up — no due or overdue items in the next '+NOTIF_LEAD_DAYS+' days.</div>';
+    return;
+  }
+  const header = '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px 10px;"><span style="font-size:12px;font-weight:700;color:var(--text-dim);">Notifications</span><button class="btn-ghost" style="font-size:11px;padding:4px 8px;" onclick="markAllNotifRead()">Mark all read</button></div>';
+  const body = notifItems.map(item=>{
+    const unread = !readIds.has(item.id);
+    const toneColor = item.kind==='overdue' ? '#EF4444' : '#d97706';
+    return '<div class="notif-item'+(unread?' unread':'')+'" onclick=\'openNotifTarget("'+item.id+'","'+item.hash+'")\' style="cursor:pointer;">'+
+      '<p class="notif-meta" style="color:'+toneColor+';font-weight:700;margin:0 0 2px;">'+escapeHtml(item.category)+' &middot; '+escapeHtml(item.subtitle)+'</p>'+
+      '<p class="notif-name">'+escapeHtml(item.title)+'</p>'+
+      '<div class="notif-actions">'+
+        (unread? '<button class="btn-ghost" onclick=\'event.stopPropagation();markNotifRead("'+item.id+'")\'>Mark read</button>' : '')+
+      '</div>'+
+    '</div>';
+  }).join('');
+  panel.innerHTML = header + body;
+}
+function markNotifRead(id){
+  const readIds = getNotifReadIds();
+  readIds.add(id);
+  setNotifReadIds(readIds);
+  renderNotifBadge();
+  renderNotifPanel();
+}
+function markAllNotifRead(){
+  const readIds = getNotifReadIds();
+  notifItems.forEach(i=>readIds.add(i.id));
+  setNotifReadIds(readIds);
+  renderNotifBadge();
+  renderNotifPanel();
+}
+function openNotifTarget(id, hash){
+  markNotifRead(id);
+  document.getElementById('notif-panel').classList.remove('open');
+  location.hash = hash;
+}
+
+// ===================== Bootstrap =====================
+
+function showHostingBannerIfNeeded(){
+  try{
+    // Service worker registration (further down) requires https: or localhost —
+    // plain http: on a real host doesn't qualify. The banner used to only
+    // check for "any http/https host", so a site served over plain http (e.g.
+    // an internal LAN server without TLS) showed no warning at all, even
+    // though install/offline mode silently never activates there. Match the
+    // same condition the SW registration actually uses.
+    const installCapable = location.protocol === 'https:' || location.hostname === 'localhost';
+    if(installCapable) return;
+    if(localStorage.getItem('novacrm-hosting-banner-dismissed')==='1') return;
+    const wrap = document.getElementById('hosting-banner-wrap');
+    if(!wrap) return;
+    const viaFile = location.protocol !== 'http:' && location.protocol !== 'https:';
+    const reason = viaFile
+      ? 'You\'re viewing this file directly rather than through a web server'
+      : 'This is being served over plain HTTP rather than HTTPS';
+    wrap.innerHTML =
+      '<div class="hosting-banner neu-card">'+
+        icon('globe','width:16px;height:16px;flex-shrink:0;margin-top:1px;')+
+        '<span>'+reason+', so it can\'t be installed as an app from here. Everything else — clients, projects, billing and so on — works the same. To enable "Add to Home Screen" and offline mode, host this on HTTPS (GitHub Pages, Netlify, etc.) or run it via localhost.</span>'+
+        '<button class="hb-close" onclick="dismissHostingBanner()">'+icon('x','width:15px;height:15px;')+'</button>'+
+      '</div>';
+  }catch(e){ /* localStorage unavailable — skip silently */ }
+}
+function dismissHostingBanner(){
+  const wrap = document.getElementById('hosting-banner-wrap');
+  if(wrap) wrap.innerHTML = '';
+  try{ localStorage.setItem('novacrm-hosting-banner-dismissed','1'); }catch(e){}
+}
+
+async function bootstrap(){
+  applyTheme();
+  const yearEl = document.getElementById('copyright-year');
+  if(yearEl) yearEl.textContent = new Date().getFullYear();
+  showHostingBannerIfNeeded();
+  try{ await loadAll(); }catch(e){ console.error('DB init error', e); }
+  await route();
+  initNotifications();
+  const splash = document.getElementById('boot-splash');
+  setTimeout(()=>{ if(splash){ splash.style.opacity='0'; setTimeout(()=>splash.remove(), 500); } }, 700);
+}
+window.addEventListener('hashchange', route);
+// This script tag sits at the end of <body>, so the DOM it needs is already
+// parsed by the time we reach here — no need to wait for DOMContentLoaded
+// (which, with deferred CDN scripts above, could stall if that network is
+// slow, blocked, or offline). Booting immediately keeps the core app fully
+// usable even when Chart.js / jsPDF (used only for Analytics + PDF export)
+// haven't loaded yet.
+bootstrap();
+
+// ===================== PWA install + service worker =====================
+if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  window.addEventListener('load', () => {
+    fetch('sw.js', { method:'HEAD' }).then(res => {
+      if(!res.ok) return;
+      return navigator.serviceWorker.register('sw.js').then(reg => {
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if(!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if(newWorker.state === 'activated'){
+              if(typeof showToast === 'function') showToast('NovaCRM updated — refresh to use the latest version');
+            }
+          });
+        });
+      });
+    }).catch(() => { /* sw.js not deployed alongside this file — skip silently */ });
+  });
+}
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('pwa-install-btn');
+  if(btn) btn.style.display = 'inline-flex';
+});
+window.installNovaCRM = async function(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  const btn = document.getElementById('pwa-install-btn');
+  if(btn) btn.style.display = 'none';
+};
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  if(typeof showToast === 'function') showToast('NovaCRM installed');
+});
+</script>
+</body>
+</html>
